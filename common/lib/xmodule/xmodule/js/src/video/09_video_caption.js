@@ -4,10 +4,8 @@
 
     define(
     'video/09_video_caption.js',
-    ['video/00_sjson.js', 'video/00_async_process.js', 'draggabilly'],
-    function (Sjson, AsyncProcess, Draggabilly) {
-        // TODO: remove once the Jasmine tests are able to load Draggabilly correctly
-        Draggabilly = Draggabilly || window.Draggabilly;
+    ['video/00_sjson.js', 'video/00_async_process.js'],
+    function (Sjson, AsyncProcess) {
 
         /**
          * @desc VideoCaption module exports a function.
@@ -34,14 +32,13 @@
                 'handleKeypress', 'handleKeypressLink', 'openLanguageMenu', 'closeLanguageMenu',
                 'previousLanguageMenuItem', 'nextLanguageMenuItem', 'handleCaptionToggle',
                 'showClosedCaptions', 'hideClosedCaptions', 'updateCaptionText', 'toggleClosedCaptions',
-                'getCaptionText', 'listenForDragDrop', 'updateCaptioningCookie', 'handleCaptioningCookie'
+                'getCaptionText', 'updateCaptioningCookie', 'handleCaptioningCookie'
             );
             this.state = state;
             this.state.videoCaption = this;
             this.renderElements();
             this.handleCaptioningCookie();
             this.getCaptionText();
-            this.listenForDragDrop();
 
             return $.Deferred().resolve().promise();
         };
@@ -177,8 +174,8 @@
 
                     this.container.on({
                         mouseenter: this.onContainerMouseEnter,
-                        mouseleave: this.onContainerMouseLeave,
-                    })
+                        mouseleave: this.onContainerMouseLeave
+                    });
                 }
 
                 state.el
@@ -207,10 +204,10 @@
                     keyCode = event.keyCode;
 
                 switch(keyCode) {
+                    // KEY.ENTER works inherently so we don't need to script it explicitly
                     case KEY.SPACE:
-                    case KEY.ENTER:
                         event.preventDefault();
-                        this.toggleClosedCaptions;
+                        this.toggleClosedCaptions();
                 }
             },
 
@@ -226,7 +223,7 @@
                         index = this.languageChooserEl.find('li').index(focused);
                         total = this.languageChooserEl.find('li').size() - 1;
 
-                        this.previousLanguageMenuItem(event, index, total);
+                        this.previousLanguageMenuItem(event, index);
                         break;
 
                     case KEY.DOWN:
@@ -291,7 +288,7 @@
                 return false;
             },
 
-            previousLanguageMenuItem: function(event, index, total) {
+            previousLanguageMenuItem: function(event, index) {
                 event.preventDefault();
 
                 if (event.altKey || event.shiftKey) {
@@ -394,7 +391,7 @@
             *
             * @param {jquery Event} event
             */
-            onMouseEnter: function (event) {
+            onMouseEnter: function () {
                 if (this.frozen) {
                     clearTimeout(this.frozen);
                 }
@@ -410,7 +407,7 @@
             *
             * @param {jquery Event} event
             */
-            onMouseLeave: function (event) {
+            onMouseLeave: function () {
                 if (this.frozen) {
                     clearTimeout(this.frozen);
                 }
@@ -427,7 +424,7 @@
             *
             * @param {jquery Event} event
             */
-            onMovement: function (event) {
+            onMovement: function () {
                 this.onMouseEnter();
             },
 
@@ -601,7 +598,7 @@
                             self.renderLanguageMenu(newLanguages);
                         }
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
+                    error: function () {
                         self.hideCaptions(true, false);
                         self.state.el.find('.lang').hide();
                         self.state.el.find('.transcript-control').hide();
@@ -1055,7 +1052,7 @@
             },
 
             handleCaptioningCookie: function() {
-                if ($.cookie('show_closed_captions')) {
+                if ($.cookie('show_closed_captions') === 'true') {
                     this.state.showClosedCaptions = true;
                     this.showClosedCaptions();
 
@@ -1064,6 +1061,8 @@
                         expires: 3650,
                         path: '/'
                     });
+                } else {
+                    this.hideClosedCaptions();
                 }
             },
 
@@ -1071,14 +1070,23 @@
                 event.preventDefault();
 
                 if (this.state.el.hasClass('has-captions')) {
+                    this.state.showClosedCaptions = false;
+                    this.updateCaptioningCookie(false);
                     this.hideClosedCaptions();
                 } else {
+                    this.state.showClosedCaptions = true;
+                    this.updateCaptioningCookie(true);
                     this.showClosedCaptions();
                 }
             },
 
             showClosedCaptions: function() {
                 this.state.el.addClass('has-captions');
+
+                this.captionDisplayEl
+                    .show()
+                    .addClass('is-visible');
+
                 this.captionControlEl
                     .addClass('is-active')
                     .find('.control-text')
@@ -1086,53 +1094,24 @@
 
                 if (this.subtitlesEl.find('.current').text()) {
                     this.captionDisplayEl
-                        .text(this.subtitlesEl.find('.current').text())
-                        .show();
+                        .text(this.subtitlesEl.find('.current').text());
                 } else {
                     this.captionDisplayEl
-                        .text(this.subtitlesEl.find('li').not('.spacing').text())
-                        .show();
+                        .text(gettext('(Captions will appear here once the video plays.)'));
                 }
-
-                this.state.showClosedCaptions = true;
-                this.updateCaptioningCookie(true);
             },
 
             hideClosedCaptions: function() {
                 this.state.el.removeClass('has-captions');
+
+                this.captionDisplayEl
+                    .hide()
+                    .removeClass('is-visible');
+
                 this.captionControlEl
                     .removeClass('is-active')
                     .find('.control-text')
                         .text(gettext('Turn on closed captioning'));
-
-                this.captionDisplayEl.hide();
-
-                this.state.showClosedCaptions = false;
-                this.updateCaptioningCookie(false);
-            },
-
-            getCaptionText: function() {
-                this.captionDisplayEl.text(this.subtitlesEl.find('.current').text());
-                this.updateCaptionText();
-            },
-
-            updateCaptionText: function() {
-                var self = this;
-
-                setTimeout(function() {
-                    self.getCaptionText();
-                }, 500);
-            },
-
-            listenForDragDrop: function() {
-                var captions = document.querySelector('.closed-captions'),
-                    draggable;
-
-                if (typeof Draggabilly === "function" && captions) {
-                    draggable = new Draggabilly(captions, { containment: true });
-                } else {
-                    console.log('Closed captioning available but not draggable');
-                }
             },
 
             updateCaptioningCookie: function(method) {
@@ -1142,8 +1121,25 @@
                         path: '/'
                     });
                 } else {
-                    $.cookie('show_closed_captions', '');
+                    $.cookie('show_closed_captions', null, {
+                        path: '/'
+                    });
                 }
+            },
+
+            getCaptionText: function() {
+                if (this.state.el.hasClass('is-playing')) {
+                    this.captionDisplayEl.text(this.subtitlesEl.find('.current').text());
+                }
+                this.updateCaptionText();
+            },
+
+            updateCaptionText: function() {
+                var self = this;
+
+                setTimeout(function() {
+                    self.getCaptionText();
+                }, 500);
             },
 
             /**

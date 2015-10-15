@@ -54,7 +54,6 @@
             "URI": "js/vendor/URI.min",
             "string_utils": "js/src/string_utils",
             "utility": "js/src/utility",
-            "draggabilly": "js/vendor/draggabilly.pkgd",
 
             // Files needed by OVA
             "annotator": "js/vendor/ova/annotator-full",
@@ -194,9 +193,6 @@
             },
             "moment-with-locales": {
                 exports: "moment"
-            },
-            "draggabilly": {
-                exports: "Draggabilly"
             }
         }
     });
