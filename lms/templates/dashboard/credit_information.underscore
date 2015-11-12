@@ -1,0 +1,64 @@
+<%  if (model.credit_status.provider_name){
+        var provider_link = _.sprintf('<a href="%(creditStatus)s" target="_blank">%(providerName)s</a>', {creditStatus: model.credit_status.provider_status_url, providerName:model.credit_status.provider_name });
+    }
+
+    if (model.credit_status.eligible){ %>
+    <div class="message message-status is-shown credit-message">
+        <p class="message-copy is-hidden credit-error-msg" data-credit-error="<%- model.credit_status.error %>">
+            <%- _.sprintf(gettext("An error occurred with this transaction. For help, contact %(support_email)s."),
+            {
+                support_email:_.sprintf('<a href="mailto:%(address)s">%(address)s</a>',{ address:settings.default_feedback_email })
+            }) %>
+        </p>
+    <div class="credit-action">
+        <% if (!model.credit_status.purchased && !modal.credit_status.error){ %>
+            <p class="message-copy credit-msg credit-eligibility-msg">
+                ## Translators: provider_name is the name of a credit provider or university (e.g. State University)
+                <%- gettext("You have completed this course and are eligible to purchase course credit. Select <strong>Get Credit</strong> to get started.") %>
+            </p>
+            <div class="purchase_credit">
+                <a class="btn credit-btn purchase-credit-btn" href="<%- settings.ecoomerce_public_url_root %>/credit/checkout/<%- model.credit_status.course_key %>" target="_blank" data-course-key="<%- model.credit_status.course_key %>"><% gettext("Get Credit") %></a>
+            </div>
+        <% else if ($.inArray(model.credit_status.request_status,  [null, "pending"]) && !model.credit_status.error) {
+            if (model.credit_status.request_status === "pending") { %>
+                <p class="message-copy credit-msg credit-request-pending-msg">
+                    <%- _.sprintf(gettext("%(provider_name)s has received your course credit request. We will update you when credit processing is complete."),
+                    {
+                        provider_name: model.credit_status.provider_name
+                    })
+                    %>
+                </p>
+            <% else if (model.credit_status.request_status === null){ %>
+                <p class="message-copy credit-msg credit-request-pending-msg">
+                    <%- _.sprintf(gettext("Thank you for your payment. To receive course credit, you must now request credit at the %(link_to_provider_site)s  website. Select <b>Request Credit</b> to get started."),
+                    {
+                         link_to_provider_site: provider_link
+                    }) %>
+                </p>
+            <% } %>
+        <a class="btn credit-btn access-credit-btn" href="<%- model.credit_status.provider_status_url %>" target="_blank"><%- gettext("View Details") %></a>
+        <% else if (model.credit_status.request_status === "approved" && !model.credit_status.error){ %>
+            <p class="message-copy credit-msg credit-request-approved-msg">
+                ## Translators: link_to_provider_site is a link to an external webpage. The text of the link will be the name of a
+                ## credit provider, such as 'State University' or 'Happy Fun Company'. provider_name is the name of credit provider.
+                <%- _.sprintf(gettext("<b>Congratulations!</b> %(provider_name)s has approved your request for course credit. To see your course credit, visit the %(link_to_provider_site)s website."),
+                {
+                    provider_name:model.credit_status.provider_name,
+                    link_to_provider_site: provider_link
+                }) %>
+            </p>
+            <a class="btn credit-btn access-credit-btn" href="<%- model.credit_status.provider_status_url %>" target="_blank"><%- gettext("View Credit") %></a>
+        <% else if (model.credit_status.request_status  === "rejected" && !model.credit_status.error){ %>
+            <p class="message-copy credit-msg credit-request-rejected-msg">
+                ## Translators: link_to_provider_site is a link to an external webpage. The text of the link will be the name of a
+                ## credit provider, such as 'State University' or 'Happy Fun Company'. provider_name is the name of credit provider.
+                <%- _.sprintf(gettext("%(provider_name)s did not approve your request for course credit. For more information, contact %(link_to_provider_site)s directly."),
+                {
+                    provider_name: model.credit_status.provider_name,
+                    link_to_provider_site: provider_link,
+                }) %>
+            </p>
+        <% } %>
+        </div>
+    </div>
+<% } %>

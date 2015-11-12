@@ -2,9 +2,10 @@
 Student Views
 """
 import datetime
-import logging
-import uuid
 import json
+import logging
+import urllib
+import uuid
 import warnings
 from collections import defaultdict
 from urlparse import urljoin
@@ -47,6 +48,7 @@ from social.exceptions import AuthException, AuthAlreadyAssociated
 from edxmako.shortcuts import render_to_response, render_to_string
 
 from course_modes.models import CourseMode
+from course_modes.helpers import enrollment_mode_display
 from shoppingcart.api import order_history
 from student.models import (
     Registration, UserProfile,
@@ -678,7 +680,111 @@ def dashboard(request):
     else:
         redirect_message = ''
 
+    archived_courses = [
+        {
+            "course_id": course.id,
+            "course_key": unicode(course.course_id),
+            "course_number": course.course_overview.number,
+            "course_name": course.course_overview.display_name_with_default,
+            "course_image_url": course.course_overview.course_image_url,
+            "course_university_about_section": course.course_overview.display_org_with_default,
+            "course_mode": course.mode,
+            "has_course_ended": course.course_overview.has_ended(),
+            "has_course_started": course.course_overview.has_started(),
+            "starts_within_5_days": course.course_overview.starts_within(days=5),
+            "start_date_is_still_default": course.course_overview.start_date_is_still_default,
+            "short_end_date": course.course_overview.end_datetime_text("SHORT_DATE"),
+            "short_start_date": course.course_overview.start_datetime_text("SHORT_DATE"),
+            "day_and_time": course.course_overview.start_datetime_text("DAY_AND_TIME"),
+            "share_config": _get_share_config(request, course.course_overview),
+            "show_courseware_link": (course.course_id in show_courseware_links_for),
+            "may_certify": course.course_overview.may_certify(),
+            "cert_status": cert_statuses.get(course.course_id),
+            "can_unenroll": (not cert_statuses.get(course.course_id)
+                             or cert_statuses.get(course.course_id).get('can_unenroll')),
+            "credit_status": _credit_statuses(user, course_enrollments).get(course.course_id),
+            "show_email_settings": (course.course_id in show_email_settings_for),
+            "course_mode_info": course_mode_info.get(course.course_id),
+            "show_refund_option": (course.course_id in show_refund_option_for),
+            "is_paid_course": (course.course_id in enrolled_courses_either_paid),
+            "is_course_blocked": (course.course_id in block_courses),
+            "verification_status": verify_status_by_course.get(course.course_id, {}),
+            "course_requirements": _get_courses_requirements(courses_requirements_not_met.get(course.course_id)),
+            "course_program_info": course_programs.get(unicode(course.course_id)),
+            "course_verified_certs": enrollment_mode_display(course.mode, verification_status, course.course_id),
+            "optout": unicode(course.course_overview.id) in course_optouts
+        }
+        for course in {
+            course for course in course_enrollments
+            if course.course_overview.get_course_status(
+                cert_info(request.user, course.course_overview, course.mode)
+            ) == "completed"
+        }
+    ]
+
+    current_courses = [
+        {
+            "course_id": course.id,
+            "course_key": unicode(course.course_id),
+            "course_number": course.course_overview.number,
+            "course_name": course.course_overview.display_name_with_default,
+            "course_image_url": course.course_overview.course_image_url,
+            "course_university_about_section": course.course_overview.display_org_with_default,
+            "course_mode": course.mode,
+            "has_course_ended": course.course_overview.has_ended(),
+            "has_course_started": course.course_overview.has_started(),
+            "starts_within_5_days": course.course_overview.starts_within(days=5),
+            "start_date_is_still_default": course.course_overview.start_date_is_still_default,
+            "short_end_date": course.course_overview.end_datetime_text("SHORT_DATE"),
+            "short_start_date": course.course_overview.start_datetime_text("SHORT_DATE"),
+            "day_and_time": course.course_overview.start_datetime_text("DAY_AND_TIME"),
+            "share_config": _get_share_config(request, course.course_overview),
+            "show_courseware_link": (course.course_id in show_courseware_links_for),
+            "may_certify": course.course_overview.may_certify(),
+            "cert_status": cert_statuses.get(course.course_id),
+            "can_unenroll": (not cert_statuses.get(course.course_id)
+                             or cert_statuses.get(course.course_id).get('can_unenroll')),
+            "credit_status": _credit_statuses(user, course_enrollments).get(course.course_id),
+            "show_email_settings": (course.course_id in show_email_settings_for),
+            "course_mode_info": course_mode_info.get(course.course_id),
+            "show_refund_option": (course.course_id in show_refund_option_for),
+            "is_paid_course": (course.course_id in enrolled_courses_either_paid),
+            "is_course_blocked": (course.course_id in block_courses),
+            "verification_status": verify_status_by_course.get(course.course_id, {}),
+            "course_requirements": _get_courses_requirements(courses_requirements_not_met.get(course.course_id)),
+            "course_program_info": course_programs.get(unicode(course.course_id)),
+            "course_verified_certs": enrollment_mode_display(course.mode, verification_status, course.course_id),
+            "optout": unicode(course.course_overview.id) in course_optouts
+        }
+        for course in {
+            course for course in course_enrollments
+            if course.course_overview.get_course_status(
+                cert_info(request.user, course.course_overview, course.mode)
+            ) in ['active', 'processing']
+        }
+    ]
+
+    course_settings = {
+        "share_settings": settings.SOCIAL_SHARING_SETTINGS,
+        "courses_are_browsable": settings.FEATURES.get('COURSES_ARE_BROWSABLE'),
+        "cert_name_short": settings.CERT_NAME_SHORT,
+        "cert_name_long": settings.CERT_NAME_LONG,
+        "billing_email": settings.PAYMENT_SUPPORT_EMAIL,
+        "contact_email": settings.CONTACT_EMAIL,
+        "default_feedback_email": settings.DEFAULT_FEEDBACK_EMAIL,
+        "ecoomerce_public_url_root":settings.ECOMMERCE_PUBLIC_URL_ROOT,
+        "enable_verified_certificates": settings.FEATURES.get('ENABLE_VERIFIED_CERTIFICATES'),
+        "custom_course_urls": settings.SOCIAL_SHARING_SETTINGS.get('CUSTOM_COURSE_URLS', False),
+        "dashboard_facebook": settings.SOCIAL_SHARING_SETTINGS.get('DASHBOARD_FACEBOOK', False),
+        "dashboard_twitter": settings.SOCIAL_SHARING_SETTINGS.get('DASHBOARD_TWITTER', False),
+        "dashboard_twitter_text": settings.SOCIAL_SHARING_SETTINGS.get('DASHBOARD_TWITTER_TEXT', False),
+        "platform_name": settings.PLATFORM_NAME
+    }
+
     context = {
+        'course_settings': json.dumps(course_settings),
+        'current_courses': json.dumps(current_courses),
+        'archived_courses': json.dumps(archived_courses),
         'enrollment_message': enrollment_message,
         'redirect_message': redirect_message,
         'course_enrollments': course_enrollments,
@@ -707,10 +813,54 @@ def dashboard(request):
         'order_history_list': order_history_list,
         'courses_requirements_not_met': courses_requirements_not_met,
         'nav_hidden': True,
-        'course_programs': course_programs,
+        'course_programs': course_programs
     }
 
-    return render_to_response('dashboard.html', context)
+    return render_to_response('dashboard.html', context, content_type='application/json')
+
+
+def _get_courses_requirements(course_requirements):
+    """ Get dict of course_requirements and convert CourseLocator to unicode.
+
+    Arguments:
+        course_requirements (list): a list of course requirements.
+
+    Returns:
+        Return dict contained list of course requirements.
+
+    """
+    if not course_requirements:
+        return
+
+    return {
+        'courses': [
+            {
+                'key': unicode(course['key']),
+                'display': course['display']
+            } for course in course_requirements.get('courses')
+        ]
+    }
+
+
+def _get_share_config(request, course_overview):
+    """
+    Get sharing configuration for a course.
+    """
+    share_url = ''
+    if settings.SOCIAL_SHARING_SETTINGS.get("CUSTOM_COURSE_URLS", False):
+        if course_overview.social_sharing_url:
+            share_url = urllib.quote_plus(course_overview.social_sharing_url)
+    else:
+        share_url = urllib.quote_plus(
+            request.build_absolute_uri(reverse('about_course', args=[unicode(course_overview.id)]))
+        )
+
+    return {
+        "share_url": share_url,
+        "share_window_name": "shareWindow",
+        "share_window_config": "toolbar=no, location=no, status=no, menubar=no, scrollbars=yes,"
+                               " resizable=yes, width=640, height=480",
+    }
 
 
 def _create_recent_enrollment_message(course_enrollments, course_modes):  # pylint: disable=invalid-name
