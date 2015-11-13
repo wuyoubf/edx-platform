@@ -125,7 +125,6 @@ LMS_BASE = ENV_TOKENS.get('LMS_BASE')
 SITE_NAME = ENV_TOKENS['SITE_NAME']
 
 ALLOWED_HOSTS = [
-    # TODO: bbeggs remove this before prod, temp fix to get load testing running
     "*",
     ENV_TOKENS.get('CMS_BASE')
 ]
@@ -249,7 +248,7 @@ EMAIL_HOST_PASSWORD = AUTH_TOKENS.get('EMAIL_HOST_PASSWORD', EMAIL_HOST_PASSWORD
 # Note that this is the Studio key for Segment. There is a separate key for the LMS.
 CMS_SEGMENT_KEY = AUTH_TOKENS.get('SEGMENT_KEY')
 
-# SECRET_KEY = AUTH_TOKENS['SECRET_KEY']
+SECRET_KEY = AUTH_TOKENS['SECRET_KEY']
 
 AWS_ACCESS_KEY_ID = AUTH_TOKENS["AWS_ACCESS_KEY_ID"]
 if AWS_ACCESS_KEY_ID == "":
