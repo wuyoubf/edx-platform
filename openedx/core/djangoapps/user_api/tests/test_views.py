@@ -30,7 +30,7 @@ from third_party_auth.tests.testutil import simulate_running_pipeline, ThirdPart
 from third_party_auth.tests.utils import (
     ThirdPartyOAuthTestMixin, ThirdPartyOAuthTestMixinFacebook, ThirdPartyOAuthTestMixinGoogle
 )
-from .test_helpers import MOVIE_MIN_LEN, MOVIE_MAX_LEN
+from .test_helpers import TestCaseForm
 from xmodule.modulestore.tests.factories import CourseFactory
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase
 from ..accounts.api import get_account_settings
@@ -965,7 +965,6 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, ApiTestCase):
                 u"errorMessages": {
                     u'required': u'This field is required.',
                     u'invalid_choice': u'Select a valid choice. %(value)s is not one of the available choices.',
-                    u'invalid': u'Enter a valid value.',
                 }
             }
         )
@@ -981,11 +980,11 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, ApiTestCase):
                 u"defaultValue": None,
                 u"errorMessages": {
                     u'required': u'Please tell us your favorite movie.',
-                    u'invalid': u'Enter a valid value.'
+                    u'invalid': u"We're pretty sure you made that movie up."
                 },
                 u"restrictions": {
-                    "min_length": MOVIE_MIN_LEN,
-                    "max_length": MOVIE_MAX_LEN,
+                    "min_length": TestCaseForm.MOVIE_MIN_LEN,
+                    "max_length": TestCaseForm.MOVIE_MAX_LEN,
                 }
             }
         )
@@ -1469,24 +1468,13 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, ApiTestCase):
         self.assertEqual(account_settings["country"], self.COUNTRY)
 
     @override_settings(REGISTRATION_EXTENSION_FORM='openedx.core.djangoapps.user_api.tests.test_helpers.TestCaseForm')
-    @mock.patch('openedx.core.djangoapps.user_api.tests.test_helpers.TestCaseForm.DUMMY_STORAGE')
-    def test_with_extended_form(self, storage_dict):
-        test_dict = {}
-
-        def getter(name):
-            """
-            Get the value from the test dictionary.
-            """
-            return test_dict[name]
-
-        def setter(name, val):
-            """
-            Set the value in the test dictionary.
-            """
-            test_dict[name] = val
-
-        storage_dict.__getitem__.side_effect = getter
-        storage_dict.__setitem__.side_effect = setter
+    @mock.patch('openedx.core.djangoapps.user_api.tests.test_helpers.TestCaseForm.DUMMY_STORAGE', new_callable=dict)
+    @mock.patch(
+        'openedx.core.djangoapps.user_api.tests.test_helpers.DummyRegistrationExtensionModel',
+    )
+    def test_with_extended_form(self, dummy_model, storage_dict):
+        dummy_model_instance = mock.Mock()
+        dummy_model.return_value = dummy_model_instance
         # Create a new registration
         response = self.client.post(self.url, {
             "email": self.EMAIL,
@@ -1511,12 +1499,13 @@ class RegistrationViewTest(ThirdPartyAuthTestMixin, ApiTestCase):
         self.assertFalse(account_settings["is_active"])
         self.assertEqual(self.NAME, account_settings["name"])
 
+        self.assertEqual(storage_dict, {'favorite_movie': "Inception", "favorite_editor": "cat"})
+        self.assertEqual(dummy_model_instance.user, user)
+
         # Verify that we've been logged in
         # by trying to access a page that requires authentication
         response = self.client.get(reverse("dashboard"))
         self.assertHttpOK(response)
-
-        self.assertEqual(storage_dict[user.id], {'favorite_movie': "Inception", "favorite_editor": "cat"})
 
     def test_activation_email(self):
         # Register, which should trigger an activation email

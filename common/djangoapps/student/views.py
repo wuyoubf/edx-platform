@@ -54,9 +54,8 @@ from student.models import (
     CourseEnrollmentAllowed, UserStanding, LoginFailures,
     create_comments_service_user, PasswordHistory, UserSignupSource,
     DashboardConfiguration, LinkedInAddToProfileConfiguration, ManualEnrollmentAudit, ALLOWEDTOENROLL_TO_ENROLLED)
-
 from student.forms import AccountCreationForm, PasswordResetFormNoActive, get_custom_form
-from verify_student.models import SoftwareSecurePhotoVerification  # pylint: disable=import-error
+from lms.djangoapps.verify_student.models import SoftwareSecurePhotoVerification  # pylint: disable=import-error
 from certificates.models import CertificateStatuses, certificate_status_for_student
 from certificates.api import (  # pylint: disable=import-error
     get_certificate_url,
@@ -1453,7 +1452,9 @@ def _do_create_account(form, custom_form=None):
         with transaction.atomic():
             user.save()
             if custom_form:
-                custom_form.save(user=user)
+                custom_model = custom_form.save(commit=False)
+                custom_model.user = user
+                custom_model.save()
     except IntegrityError:
         # Figure out the cause of the integrity error
         if len(User.objects.filter(username=user.username)) > 0:

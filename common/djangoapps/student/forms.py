@@ -1,6 +1,8 @@
 """
 Utility functions for validating forms
 """
+from importlib import import_module
+
 from django import forms
 from django.forms import widgets
 from django.core.exceptions import ValidationError
@@ -10,7 +12,6 @@ from django.contrib.auth.hashers import UNUSABLE_PASSWORD_PREFIX
 from django.contrib.auth.tokens import default_token_generator
 
 from django.utils.http import int_to_base36
-from django.utils.importlib import import_module
 from django.utils.translation import ugettext_lazy as _
 from django.template import loader
 
@@ -249,22 +250,37 @@ class AccountCreationForm(forms.Form):
         }
 
 
+class DummyRegistrationExtensionModel(object):
+    """
+    Dummy registration object
+    """
+    user = None
+
+    def save(self):
+        """
+        Dummy save method for dummy model.
+        """
+        return None
+
+
 class DummyRegistrationExtensionForm(forms.Form):
     """
     This form is a placeholder form that can be overwritten by changing the value of
     settings.REGISTRATION_EXTENSION_FORM. This form should be a standard Django form
     with a save() method which takes a user argument.
 
-    A normal Django Model form is not quite suitable here, as it likely to require a model
-    which has a foreign key to the user, but the user will not yet be saved, so validation
-    will not complete.
+    A Django model form is the preferred form-- pointing toward a model with a nullable User field.
+    The user will not be immediately available when doing the initial validation.
+    If you do not use a model form, you will need to create your own save method, like the one below,
+    and have it return an object to which a 'user' attribute can be set.
     """
 
-    def save(self, user=None):
+    # pylint: disable=unused-argument
+    def save(self, commit=True):
         """
-        Dummy save method.
+        Dummy save method. Returns a dummy registration object.
         """
-        pass
+        return DummyRegistrationExtensionModel()
 
     class Meta(object):
         """

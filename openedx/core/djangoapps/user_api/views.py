@@ -250,14 +250,15 @@ class RegistrationView(APIView):
                 restrictions['max_length'] = field.max_length
             if getattr(field, 'min_length', None):
                 restrictions['min_length'] = field.min_length
+            field_options = getattr(getattr(custom_form, 'Meta', None), 'serialization_options', {}).get(field_name, {})
             form_desc.add_field(
                 field_name, label=field.label,
-                default=self.field_options(custom_form, field_name).get('default'),
-                field_type=self.field_type(custom_form, field_name, field),
+                default=field_options.get('default'),
+                field_type=field_options.get('field_type', self.FIELD_TYPE_MAP.get(field.__class__)),
                 placeholder=field.initial, instructions=field.help_text, required=field.required,
                 restrictions=restrictions,
                 options=getattr(field, 'choices', None), error_messages=field.error_messages,
-                include_default_option=self.field_options(custom_form, field_name).get('include_default_option'),
+                include_default_option=field_options.get('include_default_option'),
             )
 
         # Extra fields configured in Django settings
@@ -270,23 +271,6 @@ class RegistrationView(APIView):
                 )
 
         return HttpResponse(form_desc.to_json(), content_type="application/json")
-
-    @staticmethod
-    def field_options(form, field_name):
-        """
-        Get the options dictionary for a field from the serialization_options on the form's Meta
-        class, or return an empty dict if it isn't set.
-        """
-        options = getattr(getattr(form, 'Meta', None), 'serialization_options', {})
-        return options.get(field_name, {})
-
-    @classmethod
-    def field_type(cls, form, field_name, field):
-        """
-        Get the class of the field in question.
-        """
-        options = cls.field_options(form, field_name)
-        return options.get('field_type', cls.FIELD_TYPE_MAP.get(field.__class__))
 
     @method_decorator(csrf_exempt)
     def post(self, request):

@@ -8,6 +8,8 @@ from django import forms
 from django.http import HttpRequest, HttpResponse
 from django.test import TestCase
 from nose.tools import raises
+
+from student.forms import DummyRegistrationExtensionModel
 from ..helpers import (
     intercept_errors, shim_student_view,
     FormDescription, InvalidFieldError
@@ -217,15 +219,14 @@ class StudentViewShimTest(TestCase):
         return shim_student_view(stub_view, check_logged_in=check_logged_in)
 
 
-MOVIE_MIN_LEN = 3
-MOVIE_MAX_LEN = 100
-
-
 class TestCaseForm(forms.Form):
     """
     Test registration extension form.
     """
     DUMMY_STORAGE = {}
+
+    MOVIE_MIN_LEN = 3
+    MOVIE_MAX_LEN = 100
 
     FAVORITE_EDITOR = (
         ('vim', 'Vim'),
@@ -236,19 +237,23 @@ class TestCaseForm(forms.Form):
 
     favorite_movie = forms.CharField(
         label="Fav Flick", min_length=MOVIE_MIN_LEN, max_length=MOVIE_MAX_LEN, error_messages={
-            "required": u"Please tell us your favorite movie."
+            "required": u"Please tell us your favorite movie.",
+            "invalid": u"We're pretty sure you made that movie up."
         }
     )
     favorite_editor = forms.ChoiceField(label="Favorite Editor", choices=FAVORITE_EDITOR, required=False, initial='cat')
 
-    def save(self, user=None):
+    # pylint: disable=unused-argument
+    def save(self, commit=None):
         """
         Store the result in the dummy storage dict.
         """
-        self.DUMMY_STORAGE[user.id] = {
+        self.DUMMY_STORAGE.update({
             'favorite_movie': self.cleaned_data.get('favorite_movie'),
             'favorite_editor': self.cleaned_data.get('favorite_editor'),
-        }
+        })
+        dummy_model = DummyRegistrationExtensionModel()
+        return dummy_model
 
     class Meta(object):
         """
