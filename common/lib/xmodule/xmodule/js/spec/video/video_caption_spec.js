@@ -237,12 +237,18 @@
                         state = jasmine.initializePlayer();
 
                         $('.toggle-captions').focus().trigger(keyPressEvent(KEY.SPACE));
-                        expect($('.toggle-captions')).toHaveClass('is-active');
-                        expect($('.closed-captions')).toHaveClass('is-visible');
+
+                        setTimeout(function() {
+                            expect($('.toggle-captions')).toHaveClass('is-active');
+                            expect($('.closed-captions')).toHaveClass('is-visible');
+                        }, 500);
 
                         $('.toggle-captions').focus().trigger(keyPressEvent(KEY.SPACE));
-                        expect($('.toggle-captions')).not.toHaveClass('is-active');
-                        expect($('.closed-captions')).not.toHaveClass('is-visible');
+
+                        setTimeout(function() {
+                            expect($('.toggle-captions')).not.toHaveClass('is-active');
+                            expect($('.closed-captions')).not.toHaveClass('is-visible');
+                        }, 500);
                     });
                 });
             });

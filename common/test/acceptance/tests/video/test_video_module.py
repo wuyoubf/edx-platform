@@ -596,10 +596,10 @@ class YouTubeVideoTest(VideoBaseTest):
         And I have defined multiple language transcripts for the videos
         And I make sure captions are closed
         And I see video menu "language" with correct items
-        And I select language with code "zh"
-        Then I see "好 各位同学" text in the closed captions
         And I select language with code "en"
         Then I see "Welcome to edX." text in the closed captions
+        And I select language with code "zh"
+        Then I see "我们今天要讲的题目是" text in the closed captions
         """
         self.assets.extend(['chinese_transcripts.srt', 'subs_3_yD_cEKoCk.srt.sjson'])
         data = {'transcripts': {"zh": "chinese_transcripts.srt"}, 'sub': '3_yD_cEKoCk'}
@@ -612,22 +612,18 @@ class YouTubeVideoTest(VideoBaseTest):
         correct_languages = {'en': 'English', 'zh': 'Chinese'}
         self.assertEqual(self.video.caption_languages, correct_languages)
 
-        # Change the language to Chinese and check for correct text
-        self.video.select_language('zh')
         self.video.click_player_button('play')
-        self.video.wait_for_position('0:02')
+        self.video.wait_for_position('0:01')
         self.video.click_player_button('pause')
-        self.video.seek('0:00')
-        unicode_text = "好 各位同学".decode('utf-8')
-        self._verify_closed_caption_text(unicode_text)
 
-        # Change the language to English and check for correct text
         self.video.select_language('en')
-        self.video.click_player_button('play')
-        self.video.wait_for_position('0:02')
-        self.video.click_player_button('pause')
-        self.video.seek('0:01')
+        self.video.click_first_line_in_transcript()
         self._verify_closed_caption_text('Welcome to edX.')
+
+        self.video.select_language('zh')
+        unicode_text = "我们今天要讲的题目是".decode('utf-8')
+        self.video.click_first_line_in_transcript()
+        self._verify_closed_caption_text(unicode_text)
 
     def test_multiple_videos_in_sequentials_load_and_work(self):
         """

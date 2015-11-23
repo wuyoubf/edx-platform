@@ -31,14 +31,13 @@
                 'onResize', 'pause', 'play', 'onCaptionUpdate', 'onCaptionHandler', 'destroy',
                 'handleKeypress', 'handleKeypressLink', 'openLanguageMenu', 'closeLanguageMenu',
                 'previousLanguageMenuItem', 'nextLanguageMenuItem', 'handleCaptionToggle',
-                'showClosedCaptions', 'hideClosedCaptions', 'updateCaptionText', 'toggleClosedCaptions',
-                'getCaptionText', 'updateCaptioningCookie', 'handleCaptioningCookie'
+                'showClosedCaptions', 'hideClosedCaptions', 'toggleClosedCaptions',
+                'updateCaptioningCookie', 'handleCaptioningCookie'
             );
             this.state = state;
             this.state.videoCaption = this;
             this.renderElements();
             this.handleCaptioningCookie();
-            this.getCaptionText();
 
             return $.Deferred().resolve().promise();
         };
@@ -970,6 +969,7 @@
                             .addClass('current');
 
                         this.currentIndex = newIndex;
+                        this.captionDisplayEl.text(this.subtitlesEl.find("li[data-index='" + newIndex + "']").text());
                         this.scrollCaption();
                     }
                 }
@@ -1097,7 +1097,7 @@
                         .text(this.subtitlesEl.find('.current').text());
                 } else {
                     this.captionDisplayEl
-                        .text(gettext('(Captions will appear here once the video plays.)'));
+                        .text(gettext('(Caption will be displayed when you start playing the video.)'));
                 }
             },
 
@@ -1125,21 +1125,6 @@
                         path: '/'
                     });
                 }
-            },
-
-            getCaptionText: function() {
-                if (this.state.el.hasClass('is-playing')) {
-                    this.captionDisplayEl.text(this.subtitlesEl.find('.current').text());
-                }
-                this.updateCaptionText();
-            },
-
-            updateCaptionText: function() {
-                var self = this;
-
-                setTimeout(function() {
-                    self.getCaptionText();
-                }, 500);
             },
 
             /**

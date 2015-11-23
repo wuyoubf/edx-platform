@@ -33,6 +33,7 @@ CSS_CLASS_NAMES = {
     'captions_rendered': '.video.is-captions-rendered',
     'captions': '.subtitles',
     'captions_text': '.subtitles li',
+    'captions_text_getter': '.subtitles li[role="link"][data-index="1"]',
     'closed_captions': '.closed-captions',
     'error_message': '.video .video-player h3',
     'video_container': '.video',
@@ -403,6 +404,15 @@ class VideoPage(PageObject):
         subs = self.q(css=closed_captions_selector).html
 
         return ' '.join(subs)
+
+    def click_first_line_in_transcript(self):
+        """
+        Clicks a line in the transcript updating the current caption.
+        """
+
+        self.wait_for_captions()
+        captions_selector = self.q(css=CSS_CLASS_NAMES['captions_text_getter'])
+        captions_selector.click()
 
     @property
     def speed(self):
