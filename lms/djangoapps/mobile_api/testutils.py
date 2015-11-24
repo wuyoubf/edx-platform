@@ -41,8 +41,8 @@ class MobileAPITestCase(ModuleStoreTestCase, APITestCase):
        REVERSE_INFO = {'name': <django reverse name>, 'params': [<list of params in the URL>]}
     They may also override any of the methods defined in this class to control the behavior of the TestMixins.
     """
-    def setUp(self):
-        super(MobileAPITestCase, self).setUp()
+    def setUp(self, *args):
+        super(MobileAPITestCase, self).setUp(*args)
         self.course = CourseFactory.create(mobile_available=True, static_asset_path="needed_for_split")
         self.user = UserFactory.create()
         self.password = 'test'
@@ -86,12 +86,13 @@ class MobileAPITestCase(ModuleStoreTestCase, APITestCase):
 
     def reverse_url(self, reverse_args=None, **kwargs):  # pylint: disable=unused-argument
         """Base implementation that returns URL for endpoint that's being tested."""
-        reverse_args = reverse_args or {}
+        final_reverse_args = {}
         if 'course_id' in self.REVERSE_INFO['params']:
-            reverse_args.update({'course_id': unicode(kwargs.get('course_id', self.course.id))})
+            final_reverse_args.update({'course_id': unicode(kwargs.get('course_id', self.course.id))})
         if 'username' in self.REVERSE_INFO['params']:
-            reverse_args.update({'username': kwargs.get('username', self.user.username)})
-        return reverse(self.REVERSE_INFO['name'], kwargs=reverse_args)
+            final_reverse_args.update({'username': kwargs.get('username', self.user.username)})
+        final_reverse_args.update(reverse_args or {})
+        return reverse(self.REVERSE_INFO['name'], kwargs=final_reverse_args)
 
     def url_method(self, url, **kwargs):  # pylint: disable=unused-argument
         """Base implementation that returns response from the GET method of the URL."""
