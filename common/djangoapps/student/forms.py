@@ -299,7 +299,7 @@ class DummyRegistrationExtensionForm(forms.Form):
         serialization_options = {}
 
 
-def get_custom_form(*args, **kwargs):
+def get_registration_extension_form(*args, **kwargs):
     """
     Convenience function for getting the custom form set in settings.REGISTRATION_EXTENSION_FORM.
 

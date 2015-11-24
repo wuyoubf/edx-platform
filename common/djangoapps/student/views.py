@@ -54,7 +54,7 @@ from student.models import (
     CourseEnrollmentAllowed, UserStanding, LoginFailures,
     create_comments_service_user, PasswordHistory, UserSignupSource,
     DashboardConfiguration, LinkedInAddToProfileConfiguration, ManualEnrollmentAudit, ALLOWEDTOENROLL_TO_ENROLLED)
-from student.forms import AccountCreationForm, PasswordResetFormNoActive, get_custom_form
+from student.forms import AccountCreationForm, PasswordResetFormNoActive, get_registration_extension_form
 from lms.djangoapps.verify_student.models import SoftwareSecurePhotoVerification  # pylint: disable=import-error
 from certificates.models import CertificateStatuses, certificate_status_for_student
 from certificates.api import (  # pylint: disable=import-error
@@ -1429,10 +1429,8 @@ def _do_create_account(form, custom_form=None):
     Note: this function is also used for creating test users.
     """
     errors = {}
-    form.is_valid()
     errors.update(form.errors)
     if custom_form:
-        custom_form.is_valid()
         errors.update(custom_form.errors)
 
     if errors:
@@ -1584,7 +1582,7 @@ def create_account_with_params(request, params):
         enforce_password_policy=enforce_password_policy,
         tos_required=tos_required,
     )
-    custom_form = get_custom_form(data=params)
+    custom_form = get_registration_extension_form(data=params)
 
     # Perform operations within a transaction that are critical to account creation
     with transaction.atomic():

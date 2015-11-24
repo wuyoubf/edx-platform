@@ -7,6 +7,7 @@ from functools import wraps
 import logging
 import json
 
+from django import forms
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseBadRequest
 from django.utils.encoding import force_text
@@ -122,6 +123,15 @@ class FormDescription(object):
         "text": ["min_length", "max_length"],
         "password": ["min_length", "max_length"],
         "email": ["min_length", "max_length"],
+    }
+
+    FIELD_TYPE_MAP = {
+        forms.CharField: "text",
+        forms.PasswordInput: "password",
+        forms.ChoiceField: "select",
+        forms.Textarea: "textarea",
+        forms.BooleanField: "checkbox",
+        forms.EmailField: "email",
     }
 
     OVERRIDE_FIELD_PROPERTIES = [
