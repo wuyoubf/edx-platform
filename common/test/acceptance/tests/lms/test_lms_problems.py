@@ -15,7 +15,7 @@ from ...fixtures.course import CourseFixture, XBlockFixtureDesc
 from ..helpers import EventsTestMixin
 
 
-class ProblemsTest(UniqueCourseTest):
+class ProblemsTest(UniqueCourseTest, EventsTestMixin):
     """
     Base class for tests of problems in the LMS.
     """
@@ -99,7 +99,7 @@ class ProblemClarificationTest(ProblemsTest):
         self.assertNotIn('strong', tooltip_text)
 
 
-class ProblemExtendedHintTest(ProblemsTest, EventsTestMixin):
+class ProblemExtendedHintTest(ProblemsTest):
     """
     Test that extended hint features plumb through to the page html and tracking log.
     """
@@ -174,7 +174,7 @@ class ProblemExtendedHintTest(ProblemsTest, EventsTestMixin):
             actual_events)
 
 
-class ProblemHintWithHtmlTest(ProblemsTest, EventsTestMixin):
+class ProblemHintWithHtmlTest(ProblemsTest):
     """
     Tests that hints containing html get rendered properly
     """
