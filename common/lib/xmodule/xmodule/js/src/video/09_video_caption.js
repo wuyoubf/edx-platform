@@ -32,7 +32,7 @@
                 'handleKeypress', 'handleKeypressLink', 'openLanguageMenu', 'closeLanguageMenu',
                 'previousLanguageMenuItem', 'nextLanguageMenuItem', 'handleCaptionToggle',
                 'showClosedCaptions', 'hideClosedCaptions', 'toggleClosedCaptions',
-                'updateCaptioningCookie', 'handleCaptioningCookie'
+                'updateCaptioningCookie', 'handleCaptioningCookie', 'handleTranscriptToggle'
             );
             this.state = state;
             this.state.videoCaption = this;
@@ -146,17 +146,26 @@
                         'keydown'
                     ].join(' ');
 
-                this.captionControlEl.on('click', this.toggleClosedCaptions);
-                this.transcriptControlEl.on('click', this.toggle);
-                this.subtitlesMenu
-                    .on({
-                        mouseenter: this.onMouseEnter,
-                        mouseleave: this.onMouseLeave,
-                        mousemove: this.onMovement,
-                        mousewheel: this.onMovement,
-                        DOMMouseScroll: this.onMovement
-                    })
-                    .on(events, 'li[data-index]', this.onCaptionHandler);
+                this.captionControlEl.on({
+                    click: this.toggleClosedCaptions,
+                    keydown: this.handleCaptionToggle
+                });
+                this.transcriptControlEl.on({
+                    click: this.toggle,
+                    keydown: this.handleTranscriptToggle
+                });
+                this.subtitlesMenu.on({
+                    mouseenter: this.onMouseEnter,
+                    mouseleave: this.onMouseLeave,
+                    mousemove: this.onMovement,
+                    mousewheel: this.onMovement,
+                    DOMMouseScroll: this.onMovement
+                })
+                .on(events, 'li[data-index]', this.onCaptionHandler);
+                this.container.on({
+                    mouseenter: this.onContainerMouseEnter,
+                    mouseleave: this.onContainerMouseLeave
+                });
 
                 if (this.showLanguageMenu) {
                     this.languageChooserEl.on({
@@ -166,15 +175,6 @@
                     this.languageChooserEl.on({
                         keydown: this.handleKeypressLink
                     }, '.control-lang');
-
-                    this.captionControlEl.on({
-                        keydown: this.handleCaptionToggle
-                    }, '.toggle-captions');
-
-                    this.container.on({
-                        mouseenter: this.onContainerMouseEnter,
-                        mouseleave: this.onContainerMouseLeave
-                    });
                 }
 
                 state.el
@@ -203,10 +203,22 @@
                     keyCode = event.keyCode;
 
                 switch(keyCode) {
-                    // KEY.ENTER works inherently so we don't need to script it explicitly
                     case KEY.SPACE:
+                    case KEY.ENTER:
                         event.preventDefault();
-                        this.toggleClosedCaptions();
+                        this.toggleClosedCaptions(event);
+                }
+            },
+
+            handleTranscriptToggle: function(event) {
+                var KEY = $.ui.keyCode,
+                    keyCode = event.keyCode;
+
+                switch(keyCode) {
+                    case KEY.SPACE:
+                    case KEY.ENTER:
+                        event.preventDefault();
+                        this.toggle();
                 }
             },
 

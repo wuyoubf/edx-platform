@@ -166,13 +166,12 @@
 
             describe('renderCaptions', function() {
 
-                var KEY = $.ui.keyCode;
-
-                function keyPressEvent(key) {
-                    return $.Event('keydown', { keyCode: key });
-                }
-
                 describe('is rendered', function() {
+                    var KEY = $.ui.keyCode,
+
+                    keyPressEvent = function(key) {
+                        return $.Event('keydown', { keyCode: key });
+                    };
 
                     it('toggle the captions on control click', function() {
                         state = jasmine.initializePlayer();
@@ -187,68 +186,27 @@
                     });
 
                     it('toggles the captions on keypress ENTER', function() {
-                        // what i originally had
-                        // state = jasmine.initializePlayer();
-
-                        // $('.toggle-captions').focus().trigger(keyPressEvent(KEY.ENTER));
-                        // expect($('.toggle-captions')).toHaveClass('is-active');
-                        // expect($('.closed-captions')).toHaveClass('is-visible');
-
-                        // $('.toggle-captions').focus().trigger(keyPressEvent(KEY.ENTER));
-                        // expect($('.toggle-captions')).not.toHaveClass('is-active');
-                        // expect($('.closed-captions')).not.toHaveClass('is-visible');
-
-                        // using examples from the platform, should work?
-                        // runs(function() {
-                        //     state = jasmine.initializePlayer();
-
-                        //     $('.toggle-captions').focus();
-                        //     $('.toggle-captions').trigger(keyPressEvent(KEY.ENTER));
-                        // });
-
-                        // waitsFor(function() {
-                        //     return $('.toggle-captions').hasClass('is-active');
-                        // }, "closed captions to be enabled", 5000);
-
-                        // runs(function() {
-                        //     expect($('.toggle-captions')).toHaveClass('is-active');
-                        //     expect($('.closed-captions')).toHaveClass('is-visible');
-                        // });
-
-                        // trying setTimeout, which does work, but should it?
                         state = jasmine.initializePlayer();
 
-                        $('.toggle-captions').trigger(keyPressEvent(KEY.ENTER));
-
-                        setTimeout(function() {
-                            expect($('.toggle-captions')).toHaveClass('is-active');
-                            expect($('.closed-captions')).toHaveClass('is-visible');
-                        }, 500);
+                        $('.toggle-captions').focus().trigger(keyPressEvent(KEY.ENTER));
+                        expect($('.toggle-captions')).toHaveClass('is-active');
+                        expect($('.closed-captions')).toHaveClass('is-visible');
 
                         $('.toggle-captions').focus().trigger(keyPressEvent(KEY.ENTER));
-
-                        setTimeout(function() {
-                            expect($('.toggle-captions')).not.toHaveClass('is-active');
-                            expect($('.closed-captions')).not.toHaveClass('is-visible');
-                        }, 500);
+                        expect($('.toggle-captions')).not.toHaveClass('is-active');
+                        expect($('.closed-captions')).not.toHaveClass('is-visible');
                     });
 
                     it('toggles the captions on keypress SPACE', function() {
                         state = jasmine.initializePlayer();
 
                         $('.toggle-captions').focus().trigger(keyPressEvent(KEY.SPACE));
-
-                        setTimeout(function() {
-                            expect($('.toggle-captions')).toHaveClass('is-active');
-                            expect($('.closed-captions')).toHaveClass('is-visible');
-                        }, 500);
+                        expect($('.toggle-captions')).toHaveClass('is-active');
+                        expect($('.closed-captions')).toHaveClass('is-visible');
 
                         $('.toggle-captions').focus().trigger(keyPressEvent(KEY.SPACE));
-
-                        setTimeout(function() {
-                            expect($('.toggle-captions')).not.toHaveClass('is-active');
-                            expect($('.closed-captions')).not.toHaveClass('is-visible');
-                        }, 500);
+                        expect($('.toggle-captions')).not.toHaveClass('is-active');
+                        expect($('.closed-captions')).not.toHaveClass('is-visible');
                     });
                 });
             });

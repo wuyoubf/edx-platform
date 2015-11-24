@@ -612,6 +612,7 @@ class YouTubeVideoTest(VideoBaseTest):
         correct_languages = {'en': 'English', 'zh': 'Chinese'}
         self.assertEqual(self.video.caption_languages, correct_languages)
 
+        # we start the video, then pause it to activate the transcript
         self.video.click_player_button('play')
         self.video.wait_for_position('0:01')
         self.video.click_player_button('pause')
