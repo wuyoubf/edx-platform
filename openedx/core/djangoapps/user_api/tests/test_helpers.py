@@ -9,7 +9,6 @@ from django.http import HttpRequest, HttpResponse
 from django.test import TestCase
 from nose.tools import raises
 
-from student.forms import DummyRegistrationExtensionModel
 from ..helpers import (
     intercept_errors, shim_student_view,
     FormDescription, InvalidFieldError
@@ -217,6 +216,19 @@ class StudentViewShimTest(TestCase):
             self.captured_request = request
             return response
         return shim_student_view(stub_view, check_logged_in=check_logged_in)
+
+
+class DummyRegistrationExtensionModel(object):
+    """
+    Dummy registration object
+    """
+    user = None
+
+    def save(self):
+        """
+        Dummy save method for dummy model.
+        """
+        return None
 
 
 class TestCaseForm(forms.Form):

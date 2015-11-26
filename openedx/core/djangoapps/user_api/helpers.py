@@ -129,6 +129,7 @@ class FormDescription(object):
         forms.CharField: "text",
         forms.PasswordInput: "password",
         forms.ChoiceField: "select",
+        forms.TypedChoiceField: "select",
         forms.Textarea: "textarea",
         forms.BooleanField: "checkbox",
         forms.EmailField: "email",

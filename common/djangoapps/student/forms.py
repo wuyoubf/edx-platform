@@ -250,64 +250,16 @@ class AccountCreationForm(forms.Form):
         }
 
 
-class DummyRegistrationExtensionModel(object):
-    """
-    Dummy registration object
-    """
-    user = None
-
-    def save(self):
-        """
-        Dummy save method for dummy model.
-        """
-        return None
-
-
-class DummyRegistrationExtensionForm(forms.Form):
-    """
-    This form is a placeholder form that can be overwritten by changing the value of
-    settings.REGISTRATION_EXTENSION_FORM. This form should be a standard Django form
-    with a save() method which takes a user argument.
-
-    A Django model form is the preferred form-- pointing toward a model with a nullable User field.
-    The user will not be immediately available when doing the initial validation.
-    If you do not use a model form, you will need to create your own save method, like the one below,
-    and have it return an object to which a 'user' attribute can be set.
-    """
-
-    # pylint: disable=unused-argument
-    def save(self, commit=True):
-        """
-        Dummy save method. Returns a dummy registration object.
-        """
-        return DummyRegistrationExtensionModel()
-
-    class Meta(object):
-        """
-        The serialization_options dictionary is used to help fill in the gaps that Django's form
-        system does not provide in order to use the 'FormDescription.add_field' function in
-        core.djangoapps.user_api.helpers. The settings that can't automatically be derived are:
-
-        * default
-        * include_default_option
-        * field_type (but only if you're using a field not in RegistrationView.FIELD_TYPE_MAP)
-
-        All other options can be mapped. For instance 'instructions' is populated from the standard 'help_text'
-        argument on the field. See openedx.core.djangoapps.user_api.views.RegistrationView.get to see how field
-        arguments are mapped.
-        """
-        serialization_options = {}
-
-
 def get_registration_extension_form(*args, **kwargs):
     """
     Convenience function for getting the custom form set in settings.REGISTRATION_EXTENSION_FORM.
 
-    If settings.FEATURES["ENABLE_COMBINED_LOGIN_REGISTRATION"] is False, the dummy form is used regardless
-    of the setting.
+    An example form app for this can be found at http://github.com/open-craft/custom-form-app
     """
     if not settings.FEATURES.get("ENABLE_COMBINED_LOGIN_REGISTRATION"):
-        return DummyRegistrationExtensionForm(*args, **kwargs)
+        return None
+    if not getattr(settings, 'REGISTRATION_EXTENSION_FORM', None):
+        return None
     module, klass = settings.REGISTRATION_EXTENSION_FORM.rsplit('.', 1)
     module = import_module(module)
     return getattr(module, klass)(*args, **kwargs)

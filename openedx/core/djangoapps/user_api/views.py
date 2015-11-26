@@ -234,22 +234,25 @@ class RegistrationView(APIView):
         # Custom form fields can be added via the form set in settings.REGISTRATION_EXTENSION_FORM
         custom_form = get_registration_extension_form()
 
-        for field_name, field in custom_form.fields.items():
-            restrictions = {}
-            if getattr(field, 'max_length', None):
-                restrictions['max_length'] = field.max_length
-            if getattr(field, 'min_length', None):
-                restrictions['min_length'] = field.min_length
-            field_options = getattr(getattr(custom_form, 'Meta', None), 'serialization_options', {}).get(field_name, {})
-            form_desc.add_field(
-                field_name, label=field.label,
-                default=field_options.get('default'),
-                field_type=field_options.get('field_type', FormDescription.FIELD_TYPE_MAP.get(field.__class__)),
-                placeholder=field.initial, instructions=field.help_text, required=field.required,
-                restrictions=restrictions,
-                options=getattr(field, 'choices', None), error_messages=field.error_messages,
-                include_default_option=field_options.get('include_default_option'),
-            )
+        if custom_form:
+            for field_name, field in custom_form.fields.items():
+                restrictions = {}
+                if getattr(field, 'max_length', None):
+                    restrictions['max_length'] = field.max_length
+                if getattr(field, 'min_length', None):
+                    restrictions['min_length'] = field.min_length
+                field_options = getattr(
+                    getattr(custom_form, 'Meta', None), 'serialization_options', {}
+                ).get(field_name, {})
+                form_desc.add_field(
+                    field_name, label=field.label,
+                    default=field_options.get('default'),
+                    field_type=field_options.get('field_type', FormDescription.FIELD_TYPE_MAP.get(field.__class__)),
+                    placeholder=field.initial, instructions=field.help_text, required=field.required,
+                    restrictions=restrictions,
+                    options=getattr(field, 'choices', None), error_messages=field.error_messages,
+                    include_default_option=field_options.get('include_default_option'),
+                )
 
         # Extra fields configured in Django settings
         # may be required, optional, or hidden
