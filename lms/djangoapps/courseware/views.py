@@ -1404,3 +1404,25 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
             'xqa_server': settings.FEATURES.get('XQA_SERVER', 'http://your_xqa_server.com'),
         }
         return render_to_response('courseware/courseware-chromeless.html', context)
+
+
+@login_required
+def financial_assistance(_request):
+    """Render the base financial assistance page."""
+    return render_to_response('financial-assistance/financial-assistance.html', {})
+
+
+@login_required
+def financial_assistance_form(request):
+    """Render the financial assistance application form page."""
+    user = request.user
+    enrolled_courses = [
+        enrollment.course_overview
+        for enrollment
+        in CourseEnrollment.enrollments_for_user(user).order_by('-created')
+        if CourseMode.has_verified_mode(CourseMode.modes_for_course_dict(enrollment.course_id))
+    ]
+    return render_to_response('financial-assistance/apply.html', {
+        'user': user,
+        'enrolled_courses': enrolled_courses
+    })

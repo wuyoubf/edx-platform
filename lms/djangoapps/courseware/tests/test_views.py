@@ -458,6 +458,27 @@ class ViewsTestCase(ModuleStoreTestCase):
             # Verify that the email opt-in checkbox does not appear
             self.assertNotContains(response, checkbox_html, html=True)
 
+    def test_financial_assistance_page(self):
+        self.client.login(username=self.user.username, password='123456')
+        url = reverse('financial_assistance')
+        response = self.client.get(url)
+        # This is a static page, so just assert that it is returned correctly
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Financial Assistance Application', response.content)
+
+    def test_financial_assistance_form(self):
+        self.client.login(username=self.user.username, password='123456')
+        url = reverse('financial_assistance_form')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        for attribute in (self.user.profile.name, self.user.profile.country.name, self.user.email, self.user.username):
+            self.assertIn('<p>{}</p>'.format(attribute), response.content)
+
+    def test_financial_assistance_login_required(self):
+        for url in (reverse('financial_assistance'), reverse('financial_assistance_form')):
+            response = self.client.get(url)
+            self.assertRedirects(response, reverse('signin_user') + '?next=' + url)
+
 
 @attr('shard_1')
 # setting TIME_ZONE_DISPLAYED_FOR_DEADLINES explicitly
