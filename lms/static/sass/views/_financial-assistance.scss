@@ -1,6 +1,6 @@
 .financial-assistance-wrapper {
   margin: auto;
-  padding: $baseline 0;
+  padding: $baseline ($baseline/2);
   max-width: 1180px;
 
   .financial-assistance {
@@ -72,6 +72,59 @@
       background-color: $m-blue-d2;
       color: $gray-l7;
       border-radius: 2px;
+    }
+  }
+
+  // Application form View
+  .user-info {
+    @include clearfix();
+    border-bottom: 2px solid $gray-l1;
+
+    .info-column {
+      @include float(left);
+      width: 25%;
+    }
+  }
+
+  .financial-assistance-form {
+    @extend .login-register;
+
+    .action-primary {
+      @include float(right);
+      width: auto;
+      margin-top: 0;
+    }
+
+    .nav-link {
+      margin-top: 15px;
+      display: inline-block;
+    }
+
+    form {
+      border: none;
+    }
+
+    .form-field {
+      select,
+      input {
+        width: 320px;
+      }
+
+      input {
+        border: {
+          top: none;
+          right: none;
+          bottom: 3px solid $gray-l1;
+          left: none;
+        };
+        box-shadow: none;
+      }
+
+      .checkbox {
+        & + label {
+          display: inline-block;
+        }
+      }
     }
   }
 }

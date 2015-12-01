@@ -1,0 +1,6 @@
+<h1><%- gettext('Financial Assistance Application') %></h1>
+<p><%- interpolate_text(
+        gettext('Thank you for submitting your financial assistance application for {course_name}! You can expect a response in 2-4 business days.'), {course_name: course}
+    ) %>
+</p>
+<a href="<%- dashboard_url %>" class="btn btn-primary"><%- gettext('Go to Dashboard') %></a>

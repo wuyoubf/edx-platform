@@ -1419,7 +1419,7 @@ FINANCIAL_ASSISTANCE_HEADER = _(
 ).format(
     percent_sign="%",
     platform_name=settings.PLATFORM_NAME
-)
+).split('\n')
 
 
 @login_required

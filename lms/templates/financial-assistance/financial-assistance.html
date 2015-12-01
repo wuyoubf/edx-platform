@@ -10,7 +10,7 @@ from edxmako.shortcuts import marketing_link
 
   <div class="financial-assistance financial-assistance-header">
     <h1>${_("Financial Assistance Application")}</h1>
-    % for line in header.split('\n'):
+    % for line in header:
       <p>${line}</p>
     % endfor
   </div>
