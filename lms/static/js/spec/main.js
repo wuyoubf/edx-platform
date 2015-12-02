@@ -66,7 +66,6 @@
             '_split': 'js/split',
             'mathjax_delay_renderer': 'coffee/src/mathjax_delay_renderer',
             'MathJaxProcessor': 'coffee/src/customwmd',
-            'moment': 'xmodule_js/common_static/js/src/moment',
             'moment': 'xmodule_js/common_static/js/vendor/moment-with-locales.min',
 
             // Manually specify LMS files that are not converted to RequireJS
@@ -74,7 +73,6 @@
             'js/staff_debug_actions': 'js/staff_debug_actions',
             'js/vendor/jquery.qubit': 'js/vendor/jquery.qubit',
             'js/utils/navigation': 'js/utils/navigation',
-
 
             // Backbone classes loaded explicitly until they are converted to use RequireJS
             'js/models/notification': 'js/models/notification',
@@ -736,10 +734,7 @@
         'lms/include/teams/js/spec/views/topic_card_spec.js',
         'lms/include/teams/js/spec/views/topic_teams_spec.js',
         'lms/include/teams/js/spec/views/topics_spec.js',
-        'lms/include/teams/js/spec/views/team_profile_header_actions_spec.js'
-        'lms/include/teams/js/spec/views/team_join_spec.js'
-        'lms/include/js/spec/discovery/discovery_spec.js',
-        'lms/include/js/spec/ccx/schedule_spec.js',
+        'lms/include/teams/js/spec/views/team_profile_header_actions_spec.js',
         'lms/include/js/spec/bookmarks/bookmarks_list_view_spec.js',
         'lms/include/js/spec/bookmarks/bookmark_button_view_spec.js'
     ]);
