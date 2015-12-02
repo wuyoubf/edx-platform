@@ -8,7 +8,7 @@ import ddt
 import json
 import itertools
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from HTMLParser import HTMLParser
 from nose.plugins.attrib import attr
 
@@ -32,6 +32,7 @@ from certificates import api as certs_api
 from certificates.models import CertificateStatuses, CertificateGenerationConfiguration
 from certificates.tests.factories import GeneratedCertificateFactory
 from course_modes.models import CourseMode
+from course_modes.tests.factories import CourseModeFactory
 from courseware.model_data import set_score
 from courseware.testutils import RenderXBlockTestMixin
 from courseware.tests.factories import StudentModuleFactory
@@ -458,26 +459,46 @@ class ViewsTestCase(ModuleStoreTestCase):
             # Verify that the email opt-in checkbox does not appear
             self.assertNotContains(response, checkbox_html, html=True)
 
-    def test_financial_assistance_page(self):
+    def test_financial_assistance_form(self):
+        non_verified_course = CourseFactory.create().id
+        verified_course_verified_track = CourseFactory.create().id
+        verified_course_audit_track = CourseFactory.create().id
+        verified_course_deadline_passed = CourseFactory.create().id
+        unenrolled_course = CourseFactory.create().id
+
+        enrollments = (
+            (non_verified_course, CourseMode.AUDIT, None),
+            (verified_course_verified_track, CourseMode.VERIFIED, None),
+            (verified_course_audit_track, CourseMode.AUDIT, None),
+            (verified_course_deadline_passed, CourseMode.AUDIT, datetime.now(UTC) - timedelta(days=1))
+        )
+        for course, mode, expiration in enrollments:
+            CourseModeFactory(mode_slug=CourseMode.AUDIT, course_id=course)
+            if course != non_verified_course:
+                CourseModeFactory(mode_slug=CourseMode.VERIFIED, course_id=course, expiration_datetime=expiration)
+            CourseEnrollmentFactory(course_id=course, user=self.user, mode=mode)
+
         self.client.login(username=self.user.username, password='123456')
         url = reverse('financial_assistance')
         response = self.client.get(url)
-        # This is a static page, so just assert that it is returned correctly
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Financial Assistance Application', response.content)
 
-    def test_financial_assistance_form(self):
-        self.client.login(username=self.user.username, password='123456')
-        url = reverse('financial_assistance_form')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        for attribute in (self.user.profile.name, self.user.profile.country.name, self.user.email, self.user.username):
-            self.assertIn('<p>{}</p>'.format(attribute), response.content)
+        # Ensure that the user can only apply for assistance in
+        # courses which have a verified mode which hasn't expired yet,
+        # where the user is not already enrolled in verified mode
+        self.assertIn(str(verified_course_audit_track), response.content)
+        for course in (
+                non_verified_course,
+                verified_course_verified_track,
+                verified_course_deadline_passed,
+                unenrolled_course
+        ):
+            self.assertNotIn(str(course), response.content)
 
     def test_financial_assistance_login_required(self):
-        for url in (reverse('financial_assistance'), reverse('financial_assistance_form')):
-            response = self.client.get(url)
-            self.assertRedirects(response, reverse('signin_user') + '?next=' + url)
+        url = reverse('financial_assistance')
+        response = self.client.get(url)
+        self.assertRedirects(response, reverse('signin_user') + '?next=' + url)
 
 
 @attr('shard_1')

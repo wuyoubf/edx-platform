@@ -1,29 +1,15 @@
 <%inherit file="../main.html"/>
-<%
-from django.core.urlresolvers import reverse
-from django.utils.translation import ugettext as _
-%>
+<%! from openedx.core.lib.js_utils import escape_json_dumps %>
+<%namespace name='static' file='/static_content.html'/>
 
-<%namespace name="footer" file="footer.html"/>
+<%block name="js_extra">
+<%static:require_module module_name="js/financial-assistance/views/financial_assistance_form_view" class_name="FinancialAssistanceFormView">
+FinancialAssistanceFormView({
+    fields: ${escape_json_dumps(fields)},
+    user_details: ${escape_json_dumps(user_details)},
+    submit_url: ${escape_json_dumps(submit_url)}
+});
+</%static:require_module>
+</%block>
 
-<div class="financial-assistance-wrapper">
-
-  <%include file="header.html"/>
-
-  <div class="financial-assistance financial-assistance-body">
-    <h2>${_("A Note to Learners")}</h2>
-    <p>${_("Dear edX Learner,")}</p>
-    <p>${_("EdX Financial Assistance is a program we created to give learners in all financial circumstances a chance to earn a Verified Certificate upon successful completion of an edX course.")}</p>
-    <p>${_("If you are interested in working toward a Verified Certificate, but cannot afford to pay the fee, please apply now. Please note space is limited.")}</p>
-    <p>${_("In order to be eligible for edX Financial Assistance, you must demonstrate that paying the Verified Certificate fee would cause you economic hardship. To apply, you will be asked to answer a few questions about why you are applying and how the Verified Certificate will benefit you.")}</p>
-    <p>${_("Once your application is approved, we'll email to let you know and give you instructions for how to verify your identity on edX.org; then you can start working toward completing your edX course.")}</p>
-    <p>${_("EdX is committed to making it possible for you to take high quality courses from leading institutions regardless of your financial situation, earn a Verified Certificate, and share your success with others.")}</p>
-    <div class="signature-wrapper">
-      <img src="/media/profile-images/d2a9bdc2ba165dcefc73265c54bf9a20_50.jpg?v=1449013439" alt="${_('Picture of Anant Agarwal, president of edX')}"></img>
-      <p class="signature">${_("Sincerely, Anant")}</p>
-    </div>
-  </div>
-
-  ${footer.footer(_("Apply for Financial Assistance"), reverse('financial_assistance_form'))}
-
-</div>
+<div class="financial-assistance-wrapper"></div>

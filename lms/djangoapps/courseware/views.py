@@ -16,6 +16,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.db.models import Q
 from django.utils.timezone import UTC
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from django.http import Http404, HttpResponse, HttpResponseBadRequest
@@ -24,6 +25,7 @@ from certificates import api as certs_api
 from edxmako.shortcuts import render_to_response, render_to_string, marketing_link
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.cache import cache_control
+from ipware.ip import get_ip
 from markupsafe import escape
 
 from courseware import grades
@@ -1406,10 +1408,14 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
         return render_to_response('courseware/courseware-chromeless.html', context)
 
 
+FINANCIAL_ASSISTANCE_HEADER = ''
+
+
 @login_required
-def financial_assistance(_request):
-    """Render the base financial assistance page."""
-    return render_to_response('financial-assistance/financial-assistance.html', {})
+def financial_assistance_request(_request):
+    """Submit a request for financial assistance to Zendesk."""
+    # TODO implement this
+    return HttpResponse()
 
 
 @login_required
@@ -1417,12 +1423,94 @@ def financial_assistance_form(request):
     """Render the financial assistance application form page."""
     user = request.user
     enrolled_courses = [
-        enrollment.course_overview
-        for enrollment
-        in CourseEnrollment.enrollments_for_user(user).order_by('-created')
-        if CourseMode.has_verified_mode(CourseMode.modes_for_course_dict(enrollment.course_id))
+        {'name': enrollment.course_overview.display_name, 'value': unicode(enrollment.course_id)}
+        for enrollment in CourseEnrollment.enrollments_for_user(user).order_by('-created')
+        if CourseMode.objects.filter(
+            Q(expiration_datetime__isnull=True) | Q(expiration_datetime__gt=datetime.now(UTC())),
+            course_id=enrollment.course_id,
+            mode_slug=CourseMode.VERIFIED
+        ).exists()
+        and enrollment.mode != CourseMode.VERIFIED
     ]
-    return render_to_response('financial-assistance/apply.html', {
-        'user': user,
-        'enrolled_courses': enrolled_courses
+    return render_to_response('financial-assistance/financial-assistance.html', {
+        'header': FINANCIAL_ASSISTANCE_HEADER,
+        'user_details': {
+            'email': user.email,
+            'username': user.username,
+            'name': user.profile.name,
+            'country': str(user.profile.country.name),
+            'ip': get_ip(request),
+        },
+        'submit_url': reverse('submit_financial_assistance_request'),
+        'fields': [
+            {
+                'name': 'course',
+                'type': 'select',
+                'label': _('Course'),
+                'placeholder': '',
+                'defaultValue': '',
+                'required': True,
+                'options': [{'value': '', 'name': _('Choose one')}] + enrolled_courses,
+                'instructions': _(
+                    'Select the course for which you want to earn a verified certificate. If'
+                    ' the course does not appear in the list, make sure that you have enrolled'
+                    ' in the audit track for the course.'
+                )
+            },
+            {
+                'name': 'income',
+                'type': 'text',
+                'label': _('Annual Income'),
+                'placeholder': _('income in USD ($)'),
+                'defaultValue': '',
+                'required': True,
+                'restrictions': {},
+                'instructions': _('For reporting purposes, tell us a bit about your annual income.')
+            },
+            {
+                'name': 'reason_for_applying',
+                'type': 'textarea',
+                'label': _(
+                    'Please tell us about your financial situation and why you are applying for financial'
+                    ' assistance.'
+                ),
+                'placeholder': '',
+                'defaultValue': '',
+                'required': True,
+                'restrictions': {
+                    'max_length': 2500,
+                },
+                'instructions': _('Maximum response length of 2500 characters.')
+            },
+            {
+                'name': 'goals',
+                'type': 'textarea',
+                'label': _(
+                    'Please explain how financial assistance in this course will help you achieve your'
+                    ' personal and professional goals. How do you plan on using the Certificate you earn?'
+                ),
+                'placeholder': '',
+                'defaultValue': '',
+                'required': True,
+                'restrictions': {
+                    'max_length': 2500,
+                },
+                'instructions': _('Maximum response length of 2500 characters.')
+            },
+            {
+                'name': 'effort',
+                'type': 'textarea',
+                'label': _(
+                    'Once enrolled in this course, explain what efforts you will take to completing'
+                    ' the course and improving the experience for your fellow learners.'
+                ),
+                'placeholder': '',
+                'defaultValue': '',
+                'required': True,
+                'restrictions': {
+                    'max_length': 2500,
+                },
+                'instructions': _('Maximum response length of 2500 characters.')
+            },
+        ],
     })

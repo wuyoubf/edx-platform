@@ -779,12 +779,12 @@ if settings.FEATURES.get('ENABLE_FINANCIAL_ASSISTANCE_FORM'):
     urlpatterns += (
         url(
             r'^financial-assistance/$',
-            'courseware.views.financial_assistance',
+            'courseware.views.financial_assistance_form',
             name='financial_assistance'
         ),
         url(
-            r'^financial-assistance/apply/$',
-            'courseware.views.financial_assistance_form',
-            name="financial_assistance_form"
+            r'^financial-assistance/submit$',
+            'courseware.views.financial_assistance_request',
+            name='submit_financial_assistance_request'
         )
     )
