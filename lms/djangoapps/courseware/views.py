@@ -1408,7 +1408,18 @@ def render_xblock(request, usage_key_string, check_if_enrolled=True):
         return render_to_response('courseware/courseware-chromeless.html', context)
 
 
-FINANCIAL_ASSISTANCE_HEADER = ''
+# Translators: "percent_sign" is the symbol "%". "platform_name" is a
+# string identifying the name of this installation, such as "edX".
+FINANCIAL_ASSISTANCE_HEADER = _(
+    '{platform_name} now offers financial assistance for learners who want to earn verified certificates but'
+    ' who may not be able to pay the Verified Certificate fee. Eligible learners receive 90{percent_sign} off'
+    ' the Verified Certificate fee for a course.\nTo apply for financial assistance, enroll in the'
+    ' audit track for a course that offers Verified Certificates, and then complete this application.'
+    ' Note that you must complete a separate application for each course you take.'
+).format(
+    percent_sign="%",
+    platform_name=settings.PLATFORM_NAME
+)
 
 
 @login_required
@@ -1433,7 +1444,7 @@ def financial_assistance_form(request):
         and enrollment.mode != CourseMode.VERIFIED
     ]
     return render_to_response('financial-assistance/financial-assistance.html', {
-        'header': FINANCIAL_ASSISTANCE_HEADER,
+        'header_text': FINANCIAL_ASSISTANCE_HEADER,
         'user_details': {
             'email': user.email,
             'username': user.username,
