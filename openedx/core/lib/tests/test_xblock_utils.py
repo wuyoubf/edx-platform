@@ -180,7 +180,7 @@ class AddStaffMarkup(ModuleStoreTestCase):
             create_if_not_present=True
         )
         course_key = course[0].id
-        problem = self.module_store.get_item(course_key.make_usage_key('problem', 'haveacolon'))
+        problem = self.module_store.get_item(course_key.make_usage_key('problem', 'I:haveacolon'))
         self.assertEqual(problem.data, '')
 
         # output = add_staff_markup(
