@@ -30,19 +30,6 @@
       color: $m-gray-d2;
     }
 
-    .signature-wrapper {
-      margin: ($baseline/4) 0;
-
-      .signature {
-        display: inline;
-        @include margin-left($baseline/2);
-      }
-
-      img {
-        border-radius: 500px;
-      }
-    }
-
     .apply-form-list {
       padding: 0;
       list-style: none;

@@ -1423,6 +1423,13 @@ FINANCIAL_ASSISTANCE_HEADER = _(
 
 
 @login_required
+def financial_assistance(request):
+    return render_to_response('financial-assistance/financial-assistance.html', {
+        'header': FINANCIAL_ASSISTANCE_HEADER
+    })
+
+
+@login_required
 def financial_assistance_request(_request):
     """Submit a request for financial assistance to Zendesk."""
     # TODO implement this
@@ -1443,8 +1450,9 @@ def financial_assistance_form(request):
         ).exists()
         and enrollment.mode != CourseMode.VERIFIED
     ]
-    return render_to_response('financial-assistance/financial-assistance.html', {
+    return render_to_response('financial-assistance/apply.html', {
         'header_text': FINANCIAL_ASSISTANCE_HEADER,
+        'faq_link': marketing_link('FAQ'),
         'user_details': {
             'email': user.email,
             'username': user.username,
