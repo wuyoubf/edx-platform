@@ -7,7 +7,11 @@
 FinancialAssistanceFormView({
     fields: ${escape_json_dumps(fields)},
     user_details: ${escape_json_dumps(user_details)},
-    submit_url: ${escape_json_dumps(submit_url)}
+    header_text: ${escape_json_dumps(header_text)},
+    student_faq_url: ${student_faq_url},
+    dashboard_url: ${dashboard_url},
+    platform_name: ${escape_json_dumps(platform_name)},
+    submit_url: ${submit_url}
 });
 </%static:require_module>
 </%block>

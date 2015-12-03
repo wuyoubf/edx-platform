@@ -1452,7 +1452,9 @@ def financial_assistance_form(request):
     ]
     return render_to_response('financial-assistance/apply.html', {
         'header_text': FINANCIAL_ASSISTANCE_HEADER,
-        'faq_link': marketing_link('FAQ'),
+        'student_faq_url': marketing_link('FAQ'),
+        'dashboard_url': reverse('dashboard'),
+        'platform_name': settings.PLATFORM_NAME,
         'user_details': {
             'email': user.email,
             'username': user.username,
@@ -1497,7 +1499,8 @@ def financial_assistance_form(request):
                 'defaultValue': '',
                 'required': True,
                 'restrictions': {
-                    'max_length': 2500,
+                    'min_length': settings.FINANCIAL_ASSISTANCE_MIN_LENGTH,
+                    'max_length': settings.FINANCIAL_ASSISTANCE_MAX_LENGTH
                 },
                 'instructions': _('Maximum response length of 2500 characters.')
             },
@@ -1512,7 +1515,8 @@ def financial_assistance_form(request):
                 'defaultValue': '',
                 'required': True,
                 'restrictions': {
-                    'max_length': 2500,
+                    'min_length': settings.FINANCIAL_ASSISTANCE_MIN_LENGTH,
+                    'max_length': settings.FINANCIAL_ASSISTANCE_MAX_LENGTH
                 },
                 'instructions': _('Maximum response length of 2500 characters.')
             },
@@ -1527,9 +1531,24 @@ def financial_assistance_form(request):
                 'defaultValue': '',
                 'required': True,
                 'restrictions': {
-                    'max_length': 2500,
+                    'min_length': settings.FINANCIAL_ASSISTANCE_MIN_LENGTH,
+                    'max_length': settings.FINANCIAL_ASSISTANCE_MAX_LENGTH
                 },
                 'instructions': _('Maximum response length of 2500 characters.')
             },
+            {
+                'placeholder': '',
+                'name': 'mktg-permission',
+                'label': _(
+                    'I allow edX to use the information provided in this application for edX marketing purposes.'
+                ),
+                'defaultValue': '',
+                'type': 'checkbox',
+                'required': False,
+                'instructions': _(
+                    'Annual income and personal information such as email address will not be shared.'
+                ),
+                'restrictions': {}
+            }
         ],
     })
