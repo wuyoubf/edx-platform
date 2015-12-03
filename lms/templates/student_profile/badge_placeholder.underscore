@@ -1,0 +1,10 @@
+<div class="badge-display">
+  <div class="badge-image-container">
+    <span class="accomplishment-placeholder" aria-hidden="true">
+  </div>
+  <div class="badge-details">
+    <div class="badge-name"><%- gettext('Earn Your Next Accomplishment') %></div>
+    <p class="badge-description"><%- gettext('Find a course and start learning towards a goal.') %></p>
+    <div class="find-button-container"><a class="find-course" href="<% find_courses_url %>"><%- gettext('Find a course') %></a></div>
+  </div>
+</div>

@@ -26,6 +26,7 @@ define(['backbone', 'jquery', 'underscore', 'common/js/spec_helpers/ajax_helpers
                 return new LearnerProfilePage({
                     'accounts_api_url': Helpers.USER_ACCOUNTS_API_URL,
                     'preferences_api_url': Helpers.USER_PREFERENCES_API_URL,
+                    'badges_api_url': Helpers.BADGES_API_URL,
                     'own_profile': ownProfile,
                     'account_settings_page_url': Helpers.USER_ACCOUNTS_API_URL,
                     'country_options': Helpers.FIELD_OPTIONS,

@@ -5,6 +5,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.urlresolvers import reverse
+
+from mobile_api.badges.serializers import BadgeAssertionSerializer
 from openedx.core.djangoapps.user_api.accounts import NAME_MIN_LENGTH
 from openedx.core.djangoapps.user_api.serializers import ReadOnlyFieldsSerializerMixin
 
@@ -64,6 +66,13 @@ class UserReadOnlySerializer(serializers.Serializer):
         """
         profile = user.profile
 
+        badges = settings.FEATURES.get('ENABLE_OPENBADGES') or []
+        badges = badges and BadgeAssertionSerializer(
+            user.badgeassertion_set.all(),
+            many=True,
+            context={'request': self.context['request']}
+        ).data
+
         data = {
             "username": user.username,
             "url": self.context.get('request').build_absolute_uri(
@@ -96,6 +105,7 @@ class UserReadOnlySerializer(serializers.Serializer):
             "mailing_address": profile.mailing_address,
             "requires_parental_consent": profile.requires_parental_consent(),
             "account_privacy": self._get_profile_visibility(profile, user),
+            "badges": badges,
         }
 
         return self._filter_fields(

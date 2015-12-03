@@ -5,19 +5,18 @@ For more information, see:
 https://openedx.atlassian.net/wiki/display/TNL/User+API
 """
 from django.db import transaction
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from rest_framework import permissions
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from openedx.core.lib.api.authentication import (
     SessionAuthenticationAllowInactiveUser,
     OAuth2AuthenticationAllowInactiveUser,
 )
-from ..errors import UserNotFound, UserNotAuthorized, AccountUpdateError, AccountValidationError
 from openedx.core.lib.api.parsers import MergePatchParser
 from .api import get_account_settings, update_account_settings
-from .serializers import PROFILE_IMAGE_KEY_PREFIX
+from ..errors import UserNotFound, UserNotAuthorized, AccountUpdateError, AccountValidationError
 
 
 class AccountView(APIView):

@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 ('backend', models.CharField(max_length=50)),
                 ('image_url', models.URLField()),
                 ('assertion_url', models.URLField()),
+                ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
             ],
         ),
         migrations.CreateModel(

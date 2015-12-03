@@ -196,7 +196,7 @@
         .u-field-username {
 
             input[type="text"] {
-              font-weight: 600;
+                font-weight: 600;
             }
 
             .u-field-value {
@@ -266,9 +266,9 @@
             width: 100%;
 
             textarea {
-              width: 100%;
-              background-color: transparent;
-              white-space: pre-line;
+                width: 100%;
+                background-color: transparent;
+                white-space: pre-line;
             }
 
             a {
@@ -285,10 +285,10 @@
             padding: $baseline;
             border: 2px dashed $gray-l3;
             i {
-              font-size: 12px;
-              @include padding-right(5px);
-              vertical-align: middle;
-              color: $gray;
+                font-size: 12px;
+                @include padding-right(5px);
+                vertical-align: middle;
+                color: $gray;
             }
             .u-field-title {
                 width: 100%;
@@ -307,7 +307,97 @@
             border: 2px dashed $link-color;
             .u-field-title,
             i {
-              color:  $link-color;
+                color: $link-color;
+            }
+        }
+    }
+
+    .badge-set-display {
+        @extend .wrapper-profile-sections;
+        margin-top: $baseline;
+        .badge-display {
+            width: 50%;
+            display: inline-block;
+            vertical-align: top;
+            .badge-image-container {
+                padding-right: $baseline;
+                padding-bottom: $baseline;
+                width: 20%;
+                vertical-align: top;
+                display: inline-block;
+                img.badge {
+                    width: 100%;
+                }
+                .accomplishment-placeholder {
+                    border: 2px dotted $gray-d1;
+                    border-radius: 50%;
+                    display: block;
+                    width: 100%;
+                    padding-bottom: 100%;
+                }
+            }
+            .badge-details {
+                max-width: 70%;
+                display: inline-block;
+                .badge-name {
+                    @extend %t-strong;
+                    padding-bottom: ($baseline/2);
+                }
+                .badge-description {
+                    padding-bottom: $baseline;
+                }
+                .find-button-container {
+                    border: 2px solid $blue-t2;
+                    padding: ($baseline / 2) $baseline ($baseline / 2) $baseline;
+                    display: inline-block;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    color: $blue-s3;
+                }
+            }
+        }
+    }
+    .wrapper-toggle {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        text-indent: 0;
+        border-bottom: .25rem solid $gray-l4;
+        @include clearfix();
+
+        .toggle-switch {
+            float: left;
+            position: relative;
+            bottom: -(spacing-vertical(xx-small));
+            margin-bottom: -.25rem;
+            button.toggle-button {
+                display: block;
+                margin: 0;
+                border: 0 solid $transparent;
+                border-bottom-width: .25rem;
+                border-radius: 0;
+                font-weight: normal;
+                background: $transparent;
+                padding-bottom: ($baseline*.75);
+                color: $gray-d1;
+
+                &:hover,
+                &:focus {
+                    border-bottom-color: $blue-s1;
+                    color: $blue-s1;
+                    box-shadow: none;
+                    outline: none;
+                }
+                &:active {
+                    background: transparent;
+                    box-shadow: none;
+                    outline: none;
+                }
+                &.is-active {
+                    @extend %t-strong;
+                    border-bottom-color: $blue-s1;
+                    color: $black;
+                }
             }
         }
     }

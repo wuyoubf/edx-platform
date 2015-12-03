@@ -1,6 +1,3 @@
-"""
-Serializers for Badges
-"""
 from rest_framework import serializers
 
 from badges.models import BadgeClass, BadgeAssertion
@@ -24,4 +21,4 @@ class BadgeAssertionSerializer(serializers.ModelSerializer):
 
     class Meta(object):
         model = BadgeAssertion
-        fields = ('user', 'badge_class', 'image_url', 'assertion_url')
+        fields = ('user', 'badge_class', 'image_url', 'assertion_url', 'created_at')

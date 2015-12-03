@@ -7,11 +7,16 @@
         'js/views/fields',
         'js/student_profile/views/learner_profile_fields',
         'js/student_profile/views/learner_profile_view',
+        'js/student_profile/models/badges_model',
+        'js/student_profile/collections/badges_collection',
+        'js/student_profile/views/badge_listing_view',
+        'js/student_profile/views/mode_toggle_view',
         'js/student_account/views/account_settings_fields',
         'js/views/message_banner',
         'string_utils'
     ], function (gettext, $, _, Backbone, Logger, AccountSettingsModel, AccountPreferencesModel, FieldsView,
-                 LearnerProfileFieldsView, LearnerProfileView, AccountSettingsFieldViews, MessageBannerView) {
+                 LearnerProfileFieldsView, LearnerProfileView, BadgeModel, BadgeCollection, BadgeListingView,
+                 ModeToggleView, AccountSettingsFieldViews, MessageBannerView) {
 
         return function (options) {
 
@@ -134,6 +139,14 @@
                 sectionTwoFieldViews: sectionTwoFieldViews
             });
 
+            var badgeCollection = new BadgeCollection(options.account_settings_data.badges);
+
+            var badgeListingView = new BadgeListingView({
+                'el': $('.wrapper-badges'),
+                'collection': badgeCollection,
+                'find_courses_url': options.find_courses_url
+            });
+
             var getProfileVisibility = function() {
                 if (options.has_preferences_access) {
                     return accountPreferencesModel.get('account_privacy');
@@ -152,6 +165,12 @@
 
                 // Render the view for the first time
                 learnerProfileView.render();
+                var modeToggleView = new ModeToggleView({
+                    'el': $('.wrapper-toggle'),
+                    'badges': badgeListingView,
+                    'profile': $('.wrapper-profile-section-two')
+                });
+                modeToggleView.render();
             };
 
             if (options.has_preferences_access) {

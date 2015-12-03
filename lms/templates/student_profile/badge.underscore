@@ -1,0 +1,15 @@
+<div class="badge-image-container">
+  <img class="badge" src="<%- image_url %>"/>
+</div>
+<div class="badge-details">
+  <div class="badge-name"><%- badge_class.display_name %></div>
+  <p class="badge-description"><%- badge_class.description %></p>
+  <div class="badge-date-stamp">
+    <%-
+      interpolate(
+        gettext('Earned %(created_at)s.'),
+        {created_at: created_at.format('LL')},
+        true
+      )
+    %></div>
+</div>

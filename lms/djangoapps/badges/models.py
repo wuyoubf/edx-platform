@@ -132,6 +132,7 @@ class BadgeAssertion(models.Model):
     backend = models.CharField(max_length=50)
     image_url = models.URLField()
     assertion_url = models.URLField()
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     def __unicode__(self):
         return u"<{username} Badge Assertion for {slug} for {issuing_component}".format(
