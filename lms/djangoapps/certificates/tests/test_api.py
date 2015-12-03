@@ -22,7 +22,8 @@ from certificates.models import (
     CertificateStatuses,
     CertificateGenerationConfiguration,
     ExampleCertificate,
-    GeneratedCertificate
+    GeneratedCertificate,
+    certificate_status_for_student,
 )
 from certificates.queue import XQueueCertInterface, XQueueAddToQueueError
 from certificates.tests.factories import GeneratedCertificateFactory
@@ -104,13 +105,13 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             status=CertificateStatuses.generating,
             mode='verified'
         )
-
         self.assertEqual(
             certs_api.certificate_downloadable_status(self.student, self.course.id),
             {
                 'is_downloadable': False,
                 'is_generating': True,
-                'download_url': None
+                'download_url': None,
+                'uuid': None,
             }
         )
 
@@ -127,7 +128,8 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': False,
                 'is_generating': True,
-                'download_url': None
+                'download_url': None,
+                'uuid': None
             }
         )
 
@@ -137,17 +139,18 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': False,
                 'is_generating': False,
-                'download_url': None
+                'download_url': None,
+                'uuid': None,
             }
         )
 
     def test_with_downloadable_pdf_cert(self):
-        GeneratedCertificateFactory.create(
+        cert = GeneratedCertificateFactory.create(
             user=self.student,
             course_id=self.course.id,
             status=CertificateStatuses.downloadable,
             mode='verified',
-            download_url='www.google.com'
+            download_url='www.google.com',
         )
 
         self.assertEqual(
@@ -155,7 +158,8 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
             {
                 'is_downloadable': True,
                 'is_generating': False,
-                'download_url': 'www.google.com'
+                'download_url': 'www.google.com',
+                'uuid': cert.verify_uuid
             }
         )
 
@@ -166,6 +170,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
         with self._mock_passing_grade():
             certs_api.generate_user_certificates(self.student, self.course.id)
 
+        cert_status = certificate_status_for_student(self.student, self.course.id)
         self.assertEqual(
             certs_api.certificate_downloadable_status(self.student, self.course.id),
             {
@@ -175,6 +180,7 @@ class CertificateDownloadableStatusTests(WebCertificateTestMixin, ModuleStoreTes
                     user_id=self.student.id,  # pylint: disable=no-member
                     course_id=self.course.id,
                 ),
+                'uuid': cert_status['uuid']
             }
         )
 
