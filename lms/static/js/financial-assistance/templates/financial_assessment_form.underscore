@@ -19,19 +19,19 @@
 			{platform: platform_name} 
 		) %></p>
 		<div class="info-column">
-			<div class="heading"><%- gettext('Username') %></div>
+			<div class="title"><%- gettext('Username') %></div>
 			<div class="data"><%- username %></div>
 		</div>
 		<div class="info-column">
-			<div class="heading"><%- gettext('Email address') %></div>
+			<div class="title"><%- gettext('Email address') %></div>
 			<div class="data"><%- email %></div>
 		</div>
 		<div class="info-column">
-			<div class="heading"><%- gettext('Legal name') %></div>
+			<div class="title"><%- gettext('Legal name') %></div>
 			<div class="data"><%- name %></div>
 		</div>
 		<div class="info-column">
-			<div class="heading"><%- gettext('Country of residence') %></div>
+			<div class="title"><%- gettext('Country of residence') %></div>
 			<div class="data"><%- country %></div>
 		</div>
 	</div>

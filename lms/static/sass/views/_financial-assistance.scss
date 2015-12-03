@@ -1,34 +1,38 @@
+%fa-copy {
+  @extend %t-copy-base;
+  padding: ($baseline/2) 0;
+  margin: 0;
+  color: $m-gray-d2;
+};
+
 .financial-assistance-wrapper {
   margin: auto;
   padding: $baseline ($baseline/2);
   max-width: 1180px;
 
+  h1 {
+    @extend %t-title4;
+    @include text-align(left);
+    margin: 0;
+    padding: ($baseline/2) 0;
+    border-bottom: 4px solid $gray-l5;
+    color: $m-gray-d3;
+  }
+
+  h2 {
+    @extend %t-title6;
+    @extend %t-strong;
+    margin-top: ($baseline/2);
+    text-transform: none;
+  }
+
+  p {
+    @extend %fa-copy;
+  }
+
   .financial-assistance {
     padding-bottom: ($baseline/2);
     border-bottom: 4px solid $gray-l5;
-
-    h1 {
-      @extend %t-title4;
-      @include text-align(left);
-      margin: 0;
-      padding: ($baseline/2) 0;
-      border-bottom: 4px solid $gray-l5;
-      color: $m-gray-d3;
-    }
-
-    h2 {
-      @extend %t-title6;
-      @extend %t-strong;
-      margin-top: ($baseline/2);
-      text-transform: none;
-    }
-
-    p {
-      @extend %t-copy-base;
-      padding: ($baseline/2) 0;
-      margin: 0;
-      color: $m-gray-d2;
-    }
 
     .apply-form-list {
       padding: 0;
@@ -72,6 +76,10 @@
       background-color: $m-blue-d2;
       color: $gray-l7;
       border-radius: 2px;
+
+      .title {
+        font-weight: $font-regular;
+      }
     }
   }
 
@@ -83,6 +91,15 @@
     .info-column {
       @include float(left);
       width: 25%;
+    }
+
+    .title {
+      @extend %fa-copy;
+    }
+
+    .data {
+      @extend %fa-copy;
+      color: $black;
     }
   }
 
@@ -121,8 +138,13 @@
       }
 
       .checkbox {
+        height: auto;
+        position: absolute;
+        top: 5px;
+
         & + label {
           display: inline-block;
+          margin-left: 30px;
         }
       }
     }
