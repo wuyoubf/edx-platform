@@ -3,7 +3,7 @@
 <%namespace name='static' file='/static_content.html'/>
 
 <%block name="js_extra">
-<%static:require_module module_name="js/financial-assistance/views/financial_assistance_form_view" class_name="FinancialAssistanceFormView">
+<%static:require_module module_name="js/financial-assistance/financial_assistance_form_factory" class_name="FinancialAssistanceFormView">
 FinancialAssistanceFormView({
     fields: ${escape_json_dumps(fields)},
     user_details: ${escape_json_dumps(user_details)},
