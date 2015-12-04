@@ -9,22 +9,76 @@ define([
         describe('Financial Assistance View', function () {
             var view = null,
                 context = {
-                    fields: [{
-                        defaultValue: '',
-                        form: 'financial-assistance',
-                        instructions: 'select a course',
-                        label: 'Course',
-                        name: 'course',
-                        options: [
-                            {'name': 'Verified with Audit', 'value': 'course-v1:HCFA+VA101+2015'},
-                            {'name': 'Something Else', 'value': 'course-v1:SomethingX+SE101+215'},
-                            {'name': 'Test Course', 'value': 'course-v1:TestX+T101+2015'}
-                        ],
-                        placeholder: '',
-                        required: true,
-                        requiredStr: '',
-                        type: 'select'
-                    }],
+                    fields: [
+                        {
+                            defaultValue: '',
+                            form: 'financial-assistance',
+                            instructions: 'select a course',
+                            label: 'Course',
+                            name: 'course',
+                            options: [
+                                {'name': 'Verified with Audit', 'value': 'course-v1:HCFA+VA101+2015'},
+                                {'name': 'Something Else', 'value': 'course-v1:SomethingX+SE101+215'},
+                                {'name': 'Test Course', 'value': 'course-v1:TestX+T101+2015'}
+                            ],
+                            placeholder: '',
+                            required: true,
+                            requiredStr: '',
+                            type: 'select'
+                        }, {
+                            defaultValue: '',
+                            instructions: 'Specify your annual income in USD.',
+                            label: 'Annual Income',
+                            name: 'income',
+                            placeholder: 'income in USD ($)',
+                            required: true,
+                            restrictions: {},
+                            type: 'text'
+                        }, {
+                            defaultValue: '',
+                            instructions: 'Use between 250 and 500 words or so in your response.',
+                            label: 'Tell us about your current financial situation, including any unusual circumstances.',
+                            name: 'reason_for_applying',
+                            placeholder: '',
+                            required: true,
+                            restrictions: {
+                                max_length: 2500,
+                                min_length: 800
+                            },
+                            type: 'textarea'
+                        }, {
+                            defaultValue: '',
+                            instructions: "Use between 250 and 500 words or so in your response."
+                            label: "Tell us about your learning or professional goals. How will a Verified Certificate in this course help you achieve these goals?"
+                            name: "goals"
+                            placeholder: '',
+                            required: true
+                            restrictions: Object
+                            max_length: 2500
+                            min_length: 800,
+                            type: 'textarea'
+                        }, {
+                            defaultValue: '',
+                            instructions: "Use between 250 and 500 words or so in your response."
+                            label: "Tell us about your plans for this course. What steps will you take to help you complete the course work a receive a certificate?"
+                            name: "effort"
+                            placeholder: '',
+                            required: true
+                            restrictions: Object
+                            max_length: 2500
+                            min_length: 800,
+                            type: 'textarea'
+                        }, {
+                            defaultValue: '',
+                            instructions: 'Annual income and personal information such as email address will not be shared.',
+                            label: 'I allow edX to use the information provided in this application for edX marketing purposes.',
+                            name: 'mktg-permission',
+                            placeholder: '',
+                            required: false,
+                            restrictions: {},
+                            type: 'checkbox'
+                        }
+                    ],
                     user_details: {
                         country: 'UK',
                         email: 'xsy@edx.org',
