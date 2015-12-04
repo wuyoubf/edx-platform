@@ -42,31 +42,33 @@ define([
                             placeholder: '',
                             required: true,
                             restrictions: {
-                                max_length: 2500,
-                                min_length: 800
+                                min_length: 800,
+                                max_length: 2500
                             },
                             type: 'textarea'
                         }, {
                             defaultValue: '',
-                            instructions: "Use between 250 and 500 words or so in your response."
-                            label: "Tell us about your learning or professional goals. How will a Verified Certificate in this course help you achieve these goals?"
-                            name: "goals"
+                            instructions: 'Use between 250 and 500 words or so in your response.',
+                            label: 'Tell us about your learning or professional goals. How will a Verified Certificate in this course help you achieve these goals?',
+                            name: 'goals',
                             placeholder: '',
-                            required: true
-                            restrictions: Object
-                            max_length: 2500
-                            min_length: 800,
+                            required: true,
+                            restrictions: {
+                                min_length: 800,
+                                max_length: 2500
+                            },
                             type: 'textarea'
                         }, {
                             defaultValue: '',
-                            instructions: "Use between 250 and 500 words or so in your response."
-                            label: "Tell us about your plans for this course. What steps will you take to help you complete the course work a receive a certificate?"
-                            name: "effort"
+                            instructions: 'Use between 250 and 500 words or so in your response.',
+                            label: 'Tell us about your plans for this course. What steps will you take to help you complete the course work a receive a certificate?',
+                            name: 'effort',
                             placeholder: '',
-                            required: true
-                            restrictions: Object
-                            max_length: 2500
-                            min_length: 800,
+                            required: true,
+                            restrictions: {
+                                min_length: 800,
+                                max_length: 2500
+                            },
                             type: 'textarea'
                         }, {
                             defaultValue: '',
