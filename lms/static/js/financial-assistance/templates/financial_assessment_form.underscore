@@ -36,9 +36,6 @@
 		</div>
 	</div>
 
-	<h2><%- gettext('Course and Income') %></h2>
-	<p><%- gettext('Tell us a bit about which course you would like to apply financial assistance toward.') %></p>
-
 	<%= fields %>
 
 	<div class="cta-wrapper clearfix">

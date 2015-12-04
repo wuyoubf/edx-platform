@@ -80,6 +80,8 @@
 	            		course: this.model.get('course'),
 	            		dashboard_url: this.context.dashboard_url
 	            	}));
+
+                    $('.js-success-message').focus();
 	            },
 
 	            saveError: function(error) {
