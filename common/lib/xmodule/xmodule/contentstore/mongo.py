@@ -1,20 +1,19 @@
+import os
+import json
+import logging
 import pymongo
 import gridfs
 from gridfs.errors import NoFile
-
-from xmodule.contentstore.content import XASSET_LOCATION_TAG
-
-import logging
-
-from .content import StaticContent, ContentStore, StaticContentStream
-from xmodule.exceptions import NotFoundError
 from fs.osfs import OSFS
-import os
-import json
 from bson.son import SON
+
+from mongodb_proxy import autoretry_read, MongoProxy
 from opaque_keys.edx.keys import AssetKey
+from xmodule.contentstore.content import XASSET_LOCATION_TAG
+from xmodule.exceptions import NotFoundError
 from xmodule.modulestore.django import ASSET_IGNORE_REGEX
 from xmodule.util.misc import escape_invalid_characters
+from .content import StaticContent, ContentStore, StaticContentStream
 
 
 class MongoContentStore(ContentStore):
@@ -31,14 +30,16 @@ class MongoContentStore(ContentStore):
         # Remove the replicaSet parameter.
         kwargs.pop('replicaSet', None)
 
-        _db = pymongo.database.Database(
-            pymongo.MongoClient(
-                host=host,
-                port=port,
-                document_class=dict,
-                **kwargs
-            ),
-            db
+        _db = MongoProxy(
+            pymongo.database.Database(
+                pymongo.MongoClient(
+                    host=host,
+                    port=port,
+                    document_class=dict,
+                    **kwargs
+                ),
+                db
+            )
         )
 
         if user is not None and password is not None:
@@ -91,6 +92,7 @@ class MongoContentStore(ContentStore):
         # Deletes of non-existent files are considered successful
         self.fs.delete(location_or_id)
 
+    @autoretry_read
     def find(self, location, throw_on_not_found=True, as_stream=False):
         content_id, __ = self.asset_db_key(location)
 
@@ -206,6 +208,7 @@ class MongoContentStore(ContentStore):
             self.fs_files.remove(query)
         return assets_to_delete
 
+    @autoretry_read
     def _get_all_content_for_course(self,
                                     course_key,
                                     get_thumbnails=False,
@@ -288,6 +291,7 @@ class MongoContentStore(ContentStore):
         if not result.get('updatedExisting', True):
             raise NotFoundError(asset_db_key)
 
+    @autoretry_read
     def get_attrs(self, location):
         """
         Gets all of the attributes associated with the given asset. Note, returns even built in attrs
