@@ -54,6 +54,34 @@ define([
             it('should exist', function() {
                 expect(view).toBeDefined();
             });
+
+            xit('should load the form based on passed in context', function() {
+
+            });
+
+            xit('should not submit the form if the front end validation fails', function() {
+
+            });
+
+            xit('should submit the form data and additional data if validation passes', function() {
+
+            });
+
+            xit('should submit the form and show a success message if content is valid and API returns success', function() {
+
+            });
+
+            xit('should submit the form and show an error message if content is valid and API returns error', function() {
+
+            });
+
+            xit('should allow form resubmission after a front end validation failure', function() {
+
+            });
+
+            xit('should allow form resubmission after an API error is returned', function() {
+
+            });
         });
     }
 );
