@@ -6,15 +6,16 @@ from django.db import models, transaction
 
 from django.db.models.fields import BooleanField, DateTimeField, DecimalField, TextField, FloatField, IntegerField
 from django.db.utils import IntegrityError
+from django.template import defaultfilters
 from django.utils.translation import ugettext
 from lms.djangoapps import django_comment_client
 from model_utils.models import TimeStampedModel
-
 from opaque_keys.edx.keys import CourseKey
+from openedx.core.djangoapps.models.course_details import CourseDetails
 
 from util.date_utils import strftime_localized
 from xmodule import course_metadata_utils
-from xmodule.course_module import CourseDescriptor
+from xmodule.course_module import CourseDescriptor, DEFAULT_START_DATE
 from xmodule.error_module import ErrorDescriptor
 from xmodule.modulestore.django import modulestore
 from xmodule_django.models import CourseKeyField, UsageKeyField
@@ -35,7 +36,7 @@ class CourseOverview(TimeStampedModel):
         app_label = 'course_overviews'
 
     # IMPORTANT: Bump this whenever you modify this model and/or add a migration.
-    VERSION = 2
+    VERSION = 3
 
     # Cache entry versioning.
     version = IntegerField()
@@ -51,6 +52,7 @@ class CourseOverview(TimeStampedModel):
     start = DateTimeField(null=True)
     end = DateTimeField(null=True)
     advertised_start = TextField(null=True)
+    announcement = DateTimeField(null=True)
 
     # URLs
     course_image_url = TextField()
@@ -81,6 +83,12 @@ class CourseOverview(TimeStampedModel):
     enrollment_domain = TextField(null=True)
     invitation_only = BooleanField(default=False)
     max_student_enrollments_allowed = IntegerField(null=True)
+
+    # Catalog information
+    catalog_visibility = TextField(null=True)
+    short_description = TextField(null=True)
+    course_video_url = TextField(null=True)
+    effort = TextField(null=True)
 
     @classmethod
     def _create_from_course(cls, course):
@@ -132,6 +140,7 @@ class CourseOverview(TimeStampedModel):
             start=start,
             end=end,
             advertised_start=course.advertised_start,
+            announcement=course.announcement,
 
             course_image_url=course_image_url(course),
             facebook_url=course.facebook_url,
@@ -156,6 +165,11 @@ class CourseOverview(TimeStampedModel):
             enrollment_domain=course.enrollment_domain,
             invitation_only=course.invitation_only,
             max_student_enrollments_allowed=max_student_enrollments_allowed,
+
+            catalog_visibility=course.catalog_visibility,
+            short_description=CourseDetails.fetch_about_attribute(course.id, 'short_description'),
+            effort=CourseDetails.fetch_about_attribute(course.id, 'effort'),
+            course_video_url=CourseDetails.fetch_video_url(course.id),
         )
 
     @classmethod
@@ -179,34 +193,53 @@ class CourseOverview(TimeStampedModel):
         store = modulestore()
         with store.bulk_operations(course_id):
             course = store.get_course(course_id)
-            if isinstance(course, CourseDescriptor):
-                course_overview = cls._create_from_course(course)
-                try:
-                    with transaction.atomic():
-                        course_overview.save()
-                        CourseOverviewTab.objects.bulk_create([
-                            CourseOverviewTab(tab_id=tab.tab_id, course_overview=course_overview)
-                            for tab in course.tabs
-                        ])
-                except IntegrityError:
-                    # There is a rare race condition that will occur if
-                    # CourseOverview.get_from_id is called while a
-                    # another identical overview is already in the process
-                    # of being created.
-                    # One of the overviews will be saved normally, while the
-                    # other one will cause an IntegrityError because it tries
-                    # to save a duplicate.
-                    # (see: https://openedx.atlassian.net/browse/TNL-2854).
-                    pass
-                return course_overview
-            elif course is not None:
-                raise IOError(
-                    "Error while loading course {} from the module store: {}",
-                    unicode(course_id),
-                    course.error_msg if isinstance(course, ErrorDescriptor) else unicode(course)
-                )
-            else:
-                raise cls.DoesNotExist()
+            return cls.load_course_module(course, course_id)
+
+    @classmethod
+    def load_course_module(cls, course, course_id):
+        """
+        Create a new CourseOverview from the given course, cache the overview,
+        and return it.
+
+        Arguments:
+            course (CourseDescriptor|ErrorDescriptor): the course to be loaded.
+
+        Returns:
+            CourseOverview: overview of the requested course.
+
+        Raises:
+            - CourseOverview.DoesNotExist if the course is not a CourseDescriptor.
+            - IOError if some other error occurs while trying to load the
+                course from the module store.
+        """
+        if isinstance(course, CourseDescriptor):
+            course_overview = cls._create_from_course(course)
+            try:
+                with transaction.atomic():
+                    course_overview.save()
+                    CourseOverviewTab.objects.bulk_create([
+                        CourseOverviewTab(tab_id=tab.tab_id, course_overview=course_overview)
+                        for tab in course.tabs
+                    ])
+            except IntegrityError:
+                # There is a rare race condition that will occur if
+                # CourseOverview.get_from_id is called while a
+                # another identical overview is already in the process
+                # of being created.
+                # One of the overviews will be saved normally, while the
+                # other one will cause an IntegrityError because it tries
+                # to save a duplicate.
+                # (see: https://openedx.atlassian.net/browse/TNL-2854).
+                pass
+            return course_overview
+        elif course is not None:
+            raise IOError(
+                "Error while loading course {} from the module store: {}",
+                unicode(course_id),
+                course.error_msg if isinstance(course, ErrorDescriptor) else unicode(course)
+            )
+        else:
+            raise cls.DoesNotExist()
 
     @classmethod
     def get_from_id(cls, course_id):
@@ -343,6 +376,42 @@ class CourseOverview(TimeStampedModel):
             strftime_localized
         )
 
+    @property
+    def sorting_score(self):
+        """
+        Returns a tuple that can be used to sort the courses according
+        the how "new" they are. The "newness" score is computed using a
+        heuristic that takes into account the announcement and
+        (advertised) start dates of the course if available.
+
+        The lower the number the "newer" the course.
+        """
+        return course_metadata_utils.sorting_score(self.start, self.advertised_start, self.announcement)
+
+    @property
+    def start_type(self):
+        """
+        Returns the type of the course's 'start' field.
+        """
+        if self.advertised_start is not None:
+            return u'string'
+        elif self.start != DEFAULT_START_DATE:
+            return u'timestamp'
+        else:
+            return u'empty'
+
+    @property
+    def start_display(self):
+        """
+        Returns the display value for the course's start date.
+        """
+        if self.advertised_start is not None:
+            return self.advertised_start
+        elif self.start != DEFAULT_START_DATE:
+            return defaultfilters.date(self.start, "DATE_FORMAT")
+        else:
+            return None
+
     def may_certify(self):
         """
         Returns whether it is acceptable to show the student a certificate
@@ -360,6 +429,28 @@ class CourseOverview(TimeStampedModel):
         Returns a list of ID strings for this course's prerequisite courses.
         """
         return json.loads(self._pre_requisite_courses_json)
+
+    @classmethod
+    def get_courses(cls):
+        """
+        Returns all CourseOverview objects in the database.
+        """
+        # Note: If a newly created course is not returned in this QueryList,
+        # then make sure the "publish" signal was emitted when the course was
+        # created.  For tests using CourseFactory, use emit_signals=True.
+        return CourseOverview.objects.all()
+
+        # TODO - Remove this alternative implementation.  We still need a
+        # foolproof way of making sure all course_overview objects were cached.
+        # course_overviews = CourseOverview.objects.all()
+        # if not len(course_overviews):
+        #     course_overviews = []
+        #     for course in modulestore().get_courses():
+        #         try:
+        #             course_overviews.append(cls.load_course_module(course, course.id))
+        #         except IOError:
+        #             pass
+        # return course_overviews
 
     @classmethod
     def get_all_course_keys(cls):
