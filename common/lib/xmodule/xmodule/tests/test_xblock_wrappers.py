@@ -33,7 +33,6 @@ from xmodule.capa_module import CapaDescriptor
 from xmodule.course_module import CourseDescriptor
 from xmodule.combined_open_ended_module import CombinedOpenEndedDescriptor
 from xmodule.discussion_module import DiscussionDescriptor
-from xmodule.gst_module import GraphicalSliderToolDescriptor
 from xmodule.html_module import HtmlDescriptor
 from xmodule.peer_grading_module import PeerGradingDescriptor
 from xmodule.poll_module import PollDescriptor
@@ -56,7 +55,6 @@ LEAF_XMODULES = {
     CapaDescriptor: [{}],
     CombinedOpenEndedDescriptor: [{}],
     DiscussionDescriptor: [{}],
-    GraphicalSliderToolDescriptor: [{}],
     HtmlDescriptor: [{}],
     PeerGradingDescriptor: [{}],
     PollDescriptor: [{'display_name': 'Poll Display Name'}],
@@ -79,10 +77,9 @@ CONTAINER_XMODULES = {
     WrapperBlock: [{}],
 }
 
-# These modules are editable in studio yet
+# These modules are not editable in studio yet
 NOT_STUDIO_EDITABLE = (
     CrowdsourceHinterDescriptor,
-    GraphicalSliderToolDescriptor,
     PollDescriptor
 )
 
