@@ -1,6 +1,8 @@
+"""
+MongoDB/GridFS-level code for the contentstore.
+"""
 import os
 import json
-import logging
 import pymongo
 import gridfs
 from gridfs.errors import NoFile
@@ -18,25 +20,28 @@ from .content import StaticContent, ContentStore, StaticContentStream
 
 
 class MongoContentStore(ContentStore):
-
+    """
+    MongoDB-backed ContentStore.
+    """
     # pylint: disable=unused-argument
-    def __init__(self, host, db, port=27017, tz_aware=True, user=None, password=None, bucket='fs', collection=None, **kwargs):
+    def __init__(self, host, db,
+                 port=27017, tz_aware=True, user=None, password=None, bucket='fs', collection=None, **kwargs
+                 ):  # pylint: disable=bad-continuation
         """
         Establish the connection with the mongo backend and connect to the collections
 
         :param collection: ignores but provided for consistency w/ other doc_store_config patterns
         """
-        logging.debug('Using MongoDB for static content serving at host={0} port={1} db={2}'.format(host, port, db))
-
         # GridFS will throw an exception if the Database is wrapped in a MongoProxy. So don't wrap it.
-        # The appropriate methods below are marked as autoretry_read - those methods will handle the AutoReconnect errors.
+        # The appropriate methods below are marked as autoretry_read - those methods will handle
+        # the AutoReconnect errors.
         proxy = False
         mongo_db = connect_to_mongodb(
             db, collection, host,
             port=port, tz_aware=tz_aware, user=user, password=password, proxy=proxy, **kwargs
         )
 
-        self.fs = gridfs.GridFS(mongo_db, bucket)
+        self.fs = gridfs.GridFS(mongo_db, bucket)  # pylint: disable=invalid-name
 
         self.fs_files = mongo_db[bucket + ".files"]  # the underlying collection GridFS uses
 
@@ -78,6 +83,9 @@ class MongoContentStore(ContentStore):
         return content
 
     def delete(self, location_or_id):
+        """
+        Delete an asset.
+        """
         if isinstance(location_or_id, AssetKey):
             location_or_id, _ = self.asset_db_key(location_or_id)
         # Deletes of non-existent files are considered successful

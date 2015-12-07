@@ -1,12 +1,15 @@
-
+"""
+Common MongoDB connection functions.
+"""
 import pymongo
 from mongodb_proxy import MongoProxy
 
 
-def connect_to_mongodb(
-    db, collection, host,
-    port=27017, tz_aware=True, user=None, password=None, retry_wait_time=0.1, proxy=True, **kwargs
-):
+# pylint: disable=unused-argument
+def connect_to_mongodb(db, collection, host,
+                       port=27017, tz_aware=True, user=None, password=None,
+                       retry_wait_time=0.1, proxy=True, **kwargs
+                       ):  # pylint: disable=bad-continuation
     """
     Returns a MongoDB Database connection, optionally wrapped in a proxy. The proxy
     handles AutoReconnect errors by retrying read operations, since these exceptions
