@@ -5,13 +5,13 @@
             'jquery',
             'underscore',
             'gettext',
-            'js/financial-assistance/models/financial_assistance_model',
-            'text!js/financial-assistance/templates/financial_assessment_form.underscore',
-            'text!js/financial-assistance/templates/financial_assessment_submitted.underscore',
             'js/student_account/views/FormView',
+            'js/financial-assistance/models/financial_assistance_model',
+            'text!../../../templates/financial-assistance/financial_assessment_form.underscore',
+            'text!../../../templates/financial-assistance/financial_assessment_submitted.underscore',
             'text!templates/student_account/form_field.underscore'
          ],
-         function(Backbone, $, _, gettext, FinancialAssistanceModel, formViewTpl, successTpl, FormView, formFieldTpl) {
+         function(Backbone, $, _, gettext, FinancialAssistanceModel, FormView, formViewTpl, successTpl, formFieldTpl) {
             return FormView.extend({
                 el: '.financial-assistance-wrapper',
                 events: {
