@@ -23,10 +23,11 @@ except ImportError:
 import dogstats_wrapper as dog_stats_api
 
 from contracts import check, new_contract
-from mongodb_proxy import autoretry_read, MongoProxy
+from mongodb_proxy import autoretry_read
 from xmodule.exceptions import HeartbeatFailure
 from xmodule.modulestore import BlockData
 from xmodule.modulestore.split_mongo import BlockKey
+from xmodule.mongo_connection import connect_to_mongodb
 
 
 new_contract('BlockData', BlockData)
@@ -287,24 +288,11 @@ class MongoConnection(object):
         """
         Create & open the connection, authenticate, and provide pointers to the collections
         """
-        if kwargs.get('replicaSet') is None:
-            kwargs.pop('replicaSet', None)
-            mongo_class = pymongo.MongoClient
-        else:
-            mongo_class = pymongo.MongoReplicaSetClient
-        _client = mongo_class(
-            host=host,
-            port=port,
-            tz_aware=tz_aware,
-            **kwargs
+        self.database = connect_to_mongodb(
+            db, collection, host,
+            port=port, tz_aware=tz_aware, user=user, password=password,
+            retry_wait_time=retry_wait_time, **kwargs
         )
-        self.database = MongoProxy(
-            pymongo.database.Database(_client, db),
-            wait_time=retry_wait_time
-        )
-
-        if user is not None and password is not None:
-            self.database.authenticate(user, password)
 
         self.course_index = self.database[collection + '.active_versions']
         self.structures = self.database[collection + '.structures']

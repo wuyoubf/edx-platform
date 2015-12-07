@@ -22,7 +22,7 @@ from uuid import uuid4
 from bson.son import SON
 from datetime import datetime
 from fs.osfs import OSFS
-from mongodb_proxy import MongoProxy, autoretry_read
+from mongodb_proxy import autoretry_read
 from path import Path as path
 from pytz import UTC
 from contracts import contract, new_contract
@@ -43,6 +43,7 @@ from xmodule.error_module import ErrorDescriptor
 from xmodule.errortracker import null_error_tracker, exc_info_to_str
 from xmodule.exceptions import HeartbeatFailure
 from xmodule.mako_module import MakoDescriptorSystem
+from xmodule.mongo_connection import connect_to_mongodb
 from xmodule.modulestore import ModuleStoreWriteBase, ModuleStoreEnum, BulkOperationsMixin, BulkOpsRecord
 from xmodule.modulestore.draft_and_published import ModuleStoreDraftAndPublished, DIRECT_ONLY_CATEGORIES
 from xmodule.modulestore.edit_info import EditInfoRuntimeMixin
@@ -558,31 +559,18 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
             """
             Create & open the connection, authenticate, and provide pointers to the collection
             """
-            # Remove the replicaSet parameter.
-            kwargs.pop('replicaSet', None)
-
-            self.database = MongoProxy(
-                pymongo.database.Database(
-                    pymongo.MongoClient(
-                        host=host,
-                        port=port,
-                        tz_aware=tz_aware,
-                        document_class=dict,
-                        **kwargs
-                    ),
-                    db
-                ),
-                wait_time=retry_wait_time
+            self.database = connect_to_mongodb(
+                db, collection, host,
+                port=port, tz_aware=tz_aware, user=user, password=password,
+                retry_wait_time=retry_wait_time, **kwargs
             )
+
             self.collection = self.database[collection]
 
             # Collection which stores asset metadata.
             if asset_collection is None:
                 asset_collection = self.DEFAULT_ASSET_COLLECTION_NAME
             self.asset_collection = self.database[asset_collection]
-
-            if user is not None and password is not None:
-                self.database.authenticate(user, password)
 
         do_connection(**doc_store_config)
 
@@ -1012,6 +1000,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         )
         return [course for course in base_list if not isinstance(course, ErrorDescriptor)]
 
+    @autoretry_read()
     def _find_one(self, location):
         '''Look for a given location in the collection. If the item is not present, raise
         ItemNotFoundError.
@@ -1052,6 +1041,7 @@ class MongoModuleStore(ModuleStoreDraftAndPublished, ModuleStoreWriteBase, Mongo
         except ItemNotFoundError:
             return None
 
+    @autoretry_read()
     def has_course(self, course_key, ignore_case=False, **kwargs):
         """
         Returns the course_id of the course if it was found, else None

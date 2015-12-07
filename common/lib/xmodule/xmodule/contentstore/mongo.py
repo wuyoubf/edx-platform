@@ -7,19 +7,20 @@ from gridfs.errors import NoFile
 from fs.osfs import OSFS
 from bson.son import SON
 
-from mongodb_proxy import autoretry_read, MongoProxy
+from mongodb_proxy import autoretry_read
 from opaque_keys.edx.keys import AssetKey
 from xmodule.contentstore.content import XASSET_LOCATION_TAG
 from xmodule.exceptions import NotFoundError
 from xmodule.modulestore.django import ASSET_IGNORE_REGEX
 from xmodule.util.misc import escape_invalid_characters
+from xmodule.mongo_connection import connect_to_mongodb
 from .content import StaticContent, ContentStore, StaticContentStream
 
 
 class MongoContentStore(ContentStore):
 
     # pylint: disable=unused-argument
-    def __init__(self, host, db, port=27017, user=None, password=None, bucket='fs', collection=None, **kwargs):
+    def __init__(self, host, db, port=27017, tz_aware=True, user=None, password=None, bucket='fs', collection=None, **kwargs):
         """
         Establish the connection with the mongo backend and connect to the collections
 
@@ -27,27 +28,17 @@ class MongoContentStore(ContentStore):
         """
         logging.debug('Using MongoDB for static content serving at host={0} port={1} db={2}'.format(host, port, db))
 
-        # Remove the replicaSet parameter.
-        kwargs.pop('replicaSet', None)
-
-        _db = MongoProxy(
-            pymongo.database.Database(
-                pymongo.MongoClient(
-                    host=host,
-                    port=port,
-                    document_class=dict,
-                    **kwargs
-                ),
-                db
-            )
+        # GridFS will throw an exception if the Database is wrapped in a MongoProxy. So don't wrap it.
+        # The appropriate methods below are marked as autoretry_read - those methods will handle the AutoReconnect errors.
+        proxy = False
+        mongo_db = connect_to_mongodb(
+            db, collection, host,
+            port=port, tz_aware=tz_aware, user=user, password=password, proxy=proxy, **kwargs
         )
 
-        if user is not None and password is not None:
-            _db.authenticate(user, password)
+        self.fs = gridfs.GridFS(mongo_db, bucket)
 
-        self.fs = gridfs.GridFS(_db, bucket)
-
-        self.fs_files = _db[bucket + ".files"]  # the underlying collection GridFS uses
+        self.fs_files = mongo_db[bucket + ".files"]  # the underlying collection GridFS uses
 
     def close_connections(self):
         """
@@ -92,7 +83,7 @@ class MongoContentStore(ContentStore):
         # Deletes of non-existent files are considered successful
         self.fs.delete(location_or_id)
 
-    @autoretry_read
+    @autoretry_read()
     def find(self, location, throw_on_not_found=True, as_stream=False):
         content_id, __ = self.asset_db_key(location)
 
@@ -208,7 +199,7 @@ class MongoContentStore(ContentStore):
             self.fs_files.remove(query)
         return assets_to_delete
 
-    @autoretry_read
+    @autoretry_read()
     def _get_all_content_for_course(self,
                                     course_key,
                                     get_thumbnails=False,
@@ -291,7 +282,7 @@ class MongoContentStore(ContentStore):
         if not result.get('updatedExisting', True):
             raise NotFoundError(asset_db_key)
 
-    @autoretry_read
+    @autoretry_read()
     def get_attrs(self, location):
         """
         Gets all of the attributes associated with the given asset. Note, returns even built in attrs
