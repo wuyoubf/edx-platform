@@ -59,6 +59,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ungettext_lazy
 from django_extensions.db.fields import CreationDateTimeField
 from django_extensions.db.fields.json import JSONField
 from model_utils import Choices
@@ -86,6 +87,12 @@ class CertificateStatuses(object):
     regenerating = 'regenerating'
     restricted = 'restricted'
     unavailable = 'unavailable'
+
+    human_readable_statuses = {
+        downloadable: "already received",
+        notpassing: "didn't receive",
+        error: "error states"
+    }
 
 
 class CertificateSocialNetworks(object):
@@ -137,15 +144,26 @@ class CertificateWhitelist(models.Model):
         if student:
             white_list = white_list.filter(user=student)
         result = []
+        generated_certificates = GeneratedCertificate.objects.filter(
+            course_id=course_id,
+            user__in=[exception.user for exception in white_list],
+            status=CertificateStatuses.downloadable
+        )
+        generated_certificates = {
+            certificate['user']: certificate['created_date']
+            for certificate in generated_certificates.values('user', 'created_date')
+        }
 
         for item in white_list:
+            certificate_generated = generated_certificates.get(item.user.id, '')
             result.append({
                 'id': item.id,
                 'user_id': item.user.id,
                 'user_name': unicode(item.user.username),
                 'user_email': unicode(item.user.email),
                 'course_id': unicode(item.course_id),
-                'created': item.created.strftime("%A, %B %d, %Y"),
+                'created': item.created.strftime("%B %d, %Y"),
+                'certificate_generated': certificate_generated and certificate_generated.strftime("%B %d, %Y"),
                 'notes': unicode(item.notes or ''),
             })
         return result
@@ -246,6 +264,47 @@ class CertificateGenerationHistory(TimeStampedModel):
     generated_by = models.ForeignKey(User)
     instructor_task = models.ForeignKey(InstructorTask)
     is_regeneration = models.BooleanField(default=False)
+
+    def get_task_name(self):
+        """
+        Return "regenerated" if record corresponds to Certificate Regeneration task, otherwise returns 'generated'
+        """
+        return "regenerated" if self.is_regeneration else "generated"
+
+    def get_certificate_generation_candidates(self):
+        """
+        Return the candidates for certificate generation task. It could either be students or certificate statuses
+        depending upon the nature of certificate generation task. Returned value could be one of the following,
+
+        1. "All learners" Certificate Generation task was initiated for all learners of the given course.
+        2. Comma separated list of certificate statuses, This usually happens when instructor regenerates certificates.
+        3. Comma separated list of students, This is the case when instructor generates certificates for white-listed
+            students.
+        """
+        task_input = self.instructor_task.task_input
+        try:
+            task_input_json = json.loads(task_input)
+        except ValueError:
+            # if task input is empty, it means certificates were generated for all learners
+            return "All learners"
+
+        # get statuses_to_regenerate from task_input convert statuses to human readable strings and return
+        statuses = task_input_json.get('statuses_to_regenerate', None)
+        if statuses:
+            return ", ".join(
+                [CertificateStatuses.human_readable_statuses.get(status, "") for status in statuses]
+            )
+
+        # If statuses_to_regenerate is not present in task_input then, certificate generation task was run to
+        # generate certificates for white listed students
+        students = task_input_json.get('students', [])
+        last_student = students[-1] if len(students) > 1 else ""
+        students = students[:-1] if len(students) > 1 else students
+        return ungettext_lazy(
+            "Learner with user id {user_ids} having certificate exception.",
+            "Learners with user id {user_ids} and {last_user_id} having certificate exceptions.",
+            len(students)
+        ).format(user_ids=", ".join(str(student) for student in students), last_user_id=last_student)  # pylint: disable=no-member
 
     class Meta(object):
         app_label = "certificates"
