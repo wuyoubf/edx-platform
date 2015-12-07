@@ -1,8 +1,9 @@
 define([
         'backbone',
         'jquery',
+        'js/financial-assistance/models/financial_assistance_model',
         'js/financial-assistance/views/financial_assistance_form_view'
-    ], function (Backbone, $, FinancialAssistanceFormView) {
+    ], function (Backbone, $, FinancialAssistanceModel, FinancialAssistanceFormView) {
         
         'use strict';
         
@@ -92,10 +93,25 @@ define([
                     dashboard_url: '/dashboard',
                     platform_name: 'edx',
                     submit_url: '/api/financial/v1/assistance'
-                };
+                },
+                completeForm = {};
+
+            completeForm = function() {
+                var $form = view.$('.financial-assistance-form'),
+                    chars8001 = 'w'.repeat(8001);
+
+                view.$('#financial-assistance-course').val(context.fields[1].value);
+                view.$('#financial-assistance-income').val(1312);
+                view.$('#financial-assistance-reason_for_applying').val(chars8001);
+                view.$('#financial-assistance-goals').val(chars8001);
+                view.$('#financial-assistance-effort').val(chars8001);
+            };
 
             beforeEach(function() {
                 setFixtures('<div class="financial-assistance-wrapper"></div>');
+                
+                spyOn(FinancialAssistanceModel.prototype, 'save');
+
                 view = new FinancialAssistanceFormView({
                     el: '.financial-assistance-wrapper',
                     context: context
@@ -111,16 +127,27 @@ define([
                 expect(view).toBeDefined();
             });
 
-            xit('should load the form based on passed in context', function() {
+            it('should load the form based on passed in context', function() {
+                var $form = view.$('.financial-assistance-form');
 
+                expect($form.find('select').attr('name')).toEqual(context.fields[0].name);
+                expect($form.find('input[type=text]').first().attr('name')).toEqual(context.fields[1].name);
+                expect($form.find('textarea').first().attr('name')).toEqual(context.fields[2].name);
+                expect($form.find('input[type=checkbox]').attr('name')).toEqual(context.fields[5].name);
             });
 
-            xit('should not submit the form if the front end validation fails', function() {
-
+            it('should not submit the form if the front end validation fails', function() {
+                expect(view.$('.submission-error')).toHaveClass('hidden');
+                view.$('.js-submit-form').click();
+                expect(view.model.save).not.toHaveBeenCalled();
+                expect(view.$('.submission-error')).not.toHaveClass('hidden');
             });
 
-            xit('should submit the form data and additional data if validation passes', function() {
-
+            it('should submit the form data and additional data if validation passes', function() {
+                completeForm();
+                view.$('.js-submit-form').click();
+                console.log(view.$('.submission-error').html());
+                expect(view.model.save).toHaveBeenCalled();
             });
 
             xit('should submit the form and show a success message if content is valid and API returns success', function() {
