@@ -142,12 +142,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='abstractcertificate',
             name='signatory',
-            field=models.ForeignKey(to='credentials_service.Signatory'),
+            field=models.ManyToManyField(to='credentials_service.Signatory'),
         ),
         migrations.AddField(
             model_name='abstractcertificate',
             name='template',
-            field=models.ForeignKey(blank=True, to='credentials_service.CertificateTemplate', null=True),
+            field=models.ManyToManyField(to='credentials_service.CertificateTemplate', null=True, blank=True),
         ),
         migrations.AlterUniqueTogether(
             name='coursecertificate',

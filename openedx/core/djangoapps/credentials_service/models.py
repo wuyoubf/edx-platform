@@ -148,9 +148,13 @@ class AbstractCertificate(AbstractCredential):
     Abstract Certificate configuration to support multiple type of certificates
     i.e. Programs, Courses.
     """
-    signatory = models.ForeignKey(Signatory)
-    template = models.ForeignKey(CertificateTemplate, null=True, blank=True)
+    signatory = models.ManyToManyField(Signatory)
+    template = models.ManyToManyField(CertificateTemplate, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
+
+    def __unicode__(self):
+        """Unicode representation."""
+        return self.title
 
 
 class CourseCertificate(AbstractCertificate):
@@ -229,6 +233,9 @@ class UserCredential(TimeStampedModel):
 
 
 class UserCredentialAttribute(UserCredential):
+    """
+    Different attributes of User's Credential such as white list, grade etc.
+    """
     namespace = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
